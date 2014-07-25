@@ -6,47 +6,30 @@ object Dominion {
 
   sealed trait Card {
     val name: String
-
-    // TODO can I remove this?
-    val typ: CardType
     val cost: Coins
 
     override def toString = name
   }
 
+  abstract class Action(val name: String, val cost: Coins) extends Card {
+    def play(p: Player): Player
+  }
+
   type Cards = Vector[Card]
-
-  sealed trait CardType
-
-  case object Action extends CardType
-
-  case object Treasure extends CardType
-
-  case object Victory extends CardType
 
   case class CardValue(value: Int) extends AnyVal
 
   case class Coins(value: Int) extends AnyVal
 
-  abstract class Action(val name: String, val cost: Coins) extends Card {
-    val typ = Action
-
-    def play(p: Player): Player
-  }
-
-  case object Smithy extends Action("Smithy", cost = Coins(3)) {
+  case object Smithy extends Action("Smithy", cost = Coins(4)) {
     def play(p: Player): Player = p.draw.draw.draw // Draw 3 cards
   }
 
-  abstract class Treasure(val name: String, val cost: Coins, val value: CardValue) extends Card {
-    val typ = Treasure
-  }
+  abstract class Treasure(val name: String, val cost: Coins, val value: CardValue) extends Card
 
   case object Copper extends Treasure("Copper", cost = Coins(0), value = CardValue(1))
 
-  abstract class Victory(val name: String, val cost: Coins, val value: CardValue) extends Card {
-    val typ = Victory
-  }
+  abstract class Victory(val name: String, val cost: Coins, val value: CardValue) extends Card
 
   case object Estate extends Victory("Estate", cost = Coins(2), value = CardValue(1))
 
@@ -55,17 +38,19 @@ object Dominion {
       if (cards.isEmpty) None
       else Some((cards.head, copy(cards.tail)))
 
-    def insert(cs: Cards) = Deck(cards ++ cs)
+    def insert(cs: Cards) = copy(cards ++ cs)
 
-    def shuffle: Deck = {
-      println("Shuffling")
-      copy(Random.shuffle(cards))
-    }
+    def shuffle: Deck =  copy(Random.shuffle(cards))
   }
 
-  case class Player(name: String, hand: Cards = Vector.empty, discarded: Cards = Vector.empty, deck: Deck, turn: Turn = Turn(1, 1)) {
+  case class Player(name: String,
+                    hand: Cards = Vector.empty,
+                    discarded: Cards = Vector.empty,
+                    deck: Deck,
+                    turn: Turn = Turn(1, 1)) {
+
     def canBuy(that: Card) = {
-      val coins = hand.count(_.typ == Treasure)
+      val coins = hand.count { case (_: Treasure) => true; case _ => false }
       coins >= that.cost.value
     }
 
@@ -82,7 +67,7 @@ object Dominion {
 
     def playAction: Player =
       if (turn.hasActions)
-        hand.find(_.typ == Action) match {
+        hand.find { case (_: Treasure) => true; case _ => false } match {
           case Some(action: Action) => action.play(this).copy(turn = turn.decrActions(1))
           case _ => this
         }
