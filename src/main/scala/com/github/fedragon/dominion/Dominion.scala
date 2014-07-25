@@ -15,8 +15,6 @@ object Dominion {
     def play(p: Player): Player
   }
 
-  type Cards = Vector[Card]
-
   case class CardValue(value: Int) extends AnyVal
 
   case class Coins(value: Int) extends AnyVal
@@ -25,19 +23,19 @@ object Dominion {
 
   abstract class Victory(val name: String, val cost: Coins, val value: CardValue) extends Card
 
-  case class Deck private[dominion](cards: Cards) {
+  case class Deck private[dominion](cards: Vector[Card]) {
     def draw: Option[(Card, Deck)] =
       if (cards.isEmpty) None
       else Some((cards.head, copy(cards.tail)))
 
-    def insert(cs: Cards) = copy(cards ++ cs)
+    def insert(cs: Vector[Card]) = copy(cards ++ cs)
 
     def shuffle: Deck = copy(Random.shuffle(cards))
   }
 
   case class Player(name: String,
-                    hand: Cards = Vector.empty,
-                    discarded: Cards = Vector.empty,
+                    hand: Vector[Card] = Vector.empty,
+                    discarded: Vector[Card] = Vector.empty,
                     deck: Deck,
                     turn: Turn = Turn(1, 1)) {
 
