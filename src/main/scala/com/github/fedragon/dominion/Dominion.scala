@@ -57,7 +57,7 @@ object Dominion {
 
     def playAction: Player =
       if (turn.hasActions)
-        hand.find { case (_: Treasure) => true; case _ => false} match {
+        hand.find { case (_: Action) => true; case _ => false} match {
           case Some(action: Action) => action.play(this).copy(turn = turn.decrActions(1))
           case _ => this
         }
