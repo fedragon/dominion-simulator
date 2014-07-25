@@ -6,11 +6,11 @@ class DominionSpec extends UnitSpec {
 
 
   "Drawing cards from a deck" should "reduce the number of remaining cards" in {
-    val subject = Deck()
-    subject.cards.size shouldBe 84
+    val subject = Deck(Vector(Copper))
+    subject.cards.size shouldBe 1
     val (_, deck) = subject.draw.get
 
-    deck.cards.size shouldBe 83
+    deck.cards shouldBe 'empty
   }
 
   "A player" should "be able to buy a card if he has enough coins" in {

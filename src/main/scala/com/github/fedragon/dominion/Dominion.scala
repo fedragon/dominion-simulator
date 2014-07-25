@@ -28,9 +28,6 @@ object Dominion {
 
   case object Copper extends Treasure("Copper", typ = Treasure, cost = Coins(0), value = CardValue(1))
 
-  //  case object Silver extends Treasure("Silver", typ = Treasure, cost = Coins(3), value = CardValue(5))
-  //
-  //  case object Gold extends Treasure("Gold", typ = Treasure, cost = Coins(6), value = CardValue(8))
 
   abstract class Victory(val name: String, val typ: CardType, val cost: Coins, val value: CardValue) extends Card
 
@@ -46,18 +43,6 @@ object Dominion {
     def shuffle: Deck = {
       println("Shuffling")
       copy(Random.shuffle(cards))
-    }
-  }
-
-  object Deck {
-    def apply(): Deck = {
-      val cards =
-        Vector.fill(60)(Copper) ++
-          //          Vector.fill(40)(Silver) ++
-          //          Vector.fill(30)(Gold) ++
-          Vector.fill(24)(Estate)
-
-      new Deck(cards)
     }
   }
 
