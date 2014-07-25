@@ -21,17 +21,9 @@ object Dominion {
 
   case class Coins(value: Int) extends AnyVal
 
-  case object Smithy extends Action("Smithy", cost = Coins(4)) {
-    def play(p: Player): Player = p.draw.draw.draw // Draw 3 cards
-  }
-
   abstract class Treasure(val name: String, val cost: Coins, val value: CardValue) extends Card
 
-  case object Copper extends Treasure("Copper", cost = Coins(0), value = CardValue(1))
-
   abstract class Victory(val name: String, val cost: Coins, val value: CardValue) extends Card
-
-  case object Estate extends Victory("Estate", cost = Coins(2), value = CardValue(1))
 
   case class Deck private[dominion](cards: Cards) {
     def draw: Option[(Card, Deck)] =
@@ -40,7 +32,7 @@ object Dominion {
 
     def insert(cs: Cards) = copy(cards ++ cs)
 
-    def shuffle: Deck =  copy(Random.shuffle(cards))
+    def shuffle: Deck = copy(Random.shuffle(cards))
   }
 
   case class Player(name: String,
@@ -50,7 +42,7 @@ object Dominion {
                     turn: Turn = Turn(1, 1)) {
 
     def canBuy(that: Card) = {
-      val coins = hand.count { case (_: Treasure) => true; case _ => false }
+      val coins = hand.count { case (_: Treasure) => true; case _ => false}
       coins >= that.cost.value
     }
 
@@ -67,7 +59,7 @@ object Dominion {
 
     def playAction: Player =
       if (turn.hasActions)
-        hand.find { case (_: Treasure) => true; case _ => false } match {
+        hand.find { case (_: Treasure) => true; case _ => false} match {
           case Some(action: Action) => action.play(this).copy(turn = turn.decrActions(1))
           case _ => this
         }

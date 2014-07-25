@@ -3,7 +3,9 @@ package com.github.fedragon.dominion
 class DominionSpec extends UnitSpec {
 
   import Dominion._
-
+  import KingdomCards._
+  import TreasureCards._
+  import VictoryCards._
 
   "Drawing cards from a deck" should "reduce the number of remaining cards" in {
     val subject = Deck(Vector(Copper))
@@ -41,7 +43,7 @@ class DominionSpec extends UnitSpec {
   }
 
   it should "play an action, if there is at least one in his hand" in {
-    val first = Player("Player", hand = Vector(Smithy), discarded = Vector.empty, deck = Deck(Vector(Copper, Estate, Copper)))
+    val first = Player("Player", hand = Vector(Smithy), deck = Deck(Vector(Copper, Estate, Copper)))
     val second = first.playAction
 
     second.hand.size shouldBe 4
