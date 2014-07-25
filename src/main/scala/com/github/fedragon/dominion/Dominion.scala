@@ -6,6 +6,8 @@ object Dominion {
 
   sealed trait Card {
     val name: String
+
+    // TODO can I remove this?
     val typ: CardType
     val cost: Coins
 
@@ -61,20 +63,13 @@ object Dominion {
     }
   }
 
-  case class Player(name: String, hand: Cards, discarded: Cards, deck: Deck) {
-
-    def this(name: String, deck: Deck) = this(name, Vector.empty, Vector.empty, deck)
-
+  case class Player(name: String, hand: Cards = Vector.empty, discarded: Cards = Vector.empty, deck: Deck, turn: Turn = Turn(1, 1)) {
     def canBuy(that: Card) = {
-      val coins = hand.count {
-        case _: Treasure => true
-        case _ => false
-      }
-
+      val coins = hand.count(_.typ == Treasure)
       coins >= that.cost.value
     }
 
-    def draw: Player = {
+    def draw: Player =
       deck.draw match {
         case Some((card, newDeck)) =>
           copy(hand = card +: hand, deck = newDeck)
@@ -82,9 +77,28 @@ object Dominion {
           val (card, newDeck) = deck.insert(discarded).shuffle.draw.get
           copy(hand = card +: hand, discarded = Vector.empty, deck = newDeck)
       }
-    }
 
     def discard: Player = copy(hand = Vector.empty, discarded = discarded ++ hand)
+
+    def playAction: Player =
+      if (turn.hasActions)
+        hand.find(_.typ == Action) match {
+          case Some(action: Action) => action.play(this).copy(turn = turn.decrActions(1))
+          case _ => this
+        }
+      else this
+
+  }
+
+  case class Turn(actions: Int, buys: Int) {
+    def decrActions(by: Int) = copy(actions - by, buys)
+    def incrActions(by: Int) = copy(actions + by, buys)
+    def hasActions = actions > 0
+
+    def decrBuys(by: Int) = copy(actions, buys - by)
+    def incrBuys(by: Int) = copy(actions, buys + by)
+    def hasBuys = buys > 0
   }
 
 }
+

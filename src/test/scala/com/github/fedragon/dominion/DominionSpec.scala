@@ -22,7 +22,7 @@ class DominionSpec extends UnitSpec {
   }
 
   it should "be able to draw from his deck" in {
-    val first = new Player("Player", Deck(Vector(Copper, Estate))).draw
+    val first = new Player("Player", deck = Deck(Vector(Copper, Estate))).draw
     first.hand should contain (Copper)
     first.deck.cards should contain only Estate
 
@@ -32,11 +32,24 @@ class DominionSpec extends UnitSpec {
   }
 
   it should "be able to discard from his hand" in {
-    val first = new Player("Player", Deck(Vector(Copper, Estate))).draw
+    val first = new Player("Player", deck = Deck(Vector(Copper, Estate))).draw
     first.hand should contain(Copper)
 
     val second = first.discard
     second.hand shouldBe 'empty
     second.discarded should contain(Copper)
+  }
+
+  it should "play an action, if there is at least one in his hand" in {
+    val first = Player("Player", hand = Vector(Smithy), discarded = Vector.empty, deck = Deck(Vector(Copper, Estate, Copper)))
+    val second = first.playAction
+
+    second.hand.size shouldBe 4
+    second.deck.cards shouldBe 'empty
+  }
+
+  it should "not play an action, if there are not any in his hand" in {
+    val first = new Player("Player", deck = Deck(Vector(Copper, Estate)))
+    first.playAction shouldBe first
   }
 }
