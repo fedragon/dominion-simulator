@@ -16,6 +16,8 @@ object Dominion {
 
   sealed trait CardType
 
+  case object Action extends CardType
+
   case object Treasure extends CardType
 
   case object Victory extends CardType
@@ -24,14 +26,27 @@ object Dominion {
 
   case class Coins(value: Int) extends AnyVal
 
-  abstract class Treasure(val name: String, val typ: CardType, val cost: Coins, val value: CardValue) extends Card
+  abstract class Action(val name: String, val cost: Coins) extends Card {
+    val typ = Action
 
-  case object Copper extends Treasure("Copper", typ = Treasure, cost = Coins(0), value = CardValue(1))
+    def play(p: Player): Player
+  }
 
+  case object Smithy extends Action("Smithy", cost = Coins(3)) {
+    def play(p: Player): Player = p.draw.draw.draw // Draw 3 cards
+  }
 
-  abstract class Victory(val name: String, val typ: CardType, val cost: Coins, val value: CardValue) extends Card
+  abstract class Treasure(val name: String, val cost: Coins, val value: CardValue) extends Card {
+    val typ = Treasure
+  }
 
-  case object Estate extends Victory("Estate", typ = Victory, cost = Coins(2), value = CardValue(1))
+  case object Copper extends Treasure("Copper", cost = Coins(0), value = CardValue(1))
+
+  abstract class Victory(val name: String, val cost: Coins, val value: CardValue) extends Card {
+    val typ = Victory
+  }
+
+  case object Estate extends Victory("Estate", cost = Coins(2), value = CardValue(1))
 
   case class Deck private[dominion](cards: Cards) {
     def draw: Option[(Card, Deck)] =
