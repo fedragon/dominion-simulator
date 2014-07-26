@@ -20,7 +20,7 @@ trait Reaction extends Modifiers
 abstract class Action(val name: String, val cost: Coins) extends Card
 
 object Action {
-  def unapply(card: Card): Option[Action] = card match {
+  def unapply(c: Card): Option[Action] = c match {
     case a: Action => Some(a)
     case _ => None
   }
@@ -31,7 +31,7 @@ case class CardValue(value: Int) extends AnyVal
 abstract class Treasure(val name: String, val cost: Coins, val value: CardValue) extends Card
 
 object Treasure {
-  def unapply(card: Card): Option[Treasure] = card match {
+  def unapply(c: Card): Option[Treasure] = c match {
     case t: Treasure => Some(t)
     case _ => None
   }
@@ -83,21 +83,44 @@ object Deck {
   def fillWith(n: Int)(card: Card) = Deck(Vector.fill(n)(card))
 }
 
-case class Game(players: Vector[Player], cards: Deck, trashed: Deck) {
-  def find(player: Player): Player = players.find(_.name == player.name).get
+case class Game(players: Map[String, Player], cards: Deck, trashed: Deck) {
 
-  def playersExcept(player: Player): Vector[Player] = players.filterNot(_.name == player.name)
+  import Game._
+  import monocle.syntax._
+
+  def find(p: Player) = players(p.name)
+
+  def playersExcept(p: Player): Vector[Player] =
+    players.filterNot { case (n, _) => n == p.name}.values.toVector
 
   def pick(f: Card => Boolean): Option[(Card, Game)] = {
     cards.pick(f).map {
-      case (c, d) => (c, copy(cards = d))
+      case (card, deck) => (card, this |-> _cards set deck)
     }
   }
 
-  def trash(card: Card): Game = copy(trashed = card +: trashed)
+  def trash(card: Card): Game = this |-> _trashed modify (card +: _)
 
-  def update(p: Player): Game = {
-    val index = players.indexWhere(_.name == p.name)
-    copy(players = players.updated(index, p))
+  def update(p: Player): Game = this |-> _players modify (_.updated(p.name, p))
+
+  def victims(p: Player): Vector[Player] = {
+    players.filterNot {
+      case (name, pn) =>
+        name == p.name || pn.hand.exists {
+          case _: (Action with Reaction) => true
+          case _ => false
+        }
+    }.values.toVector
   }
 }
+
+object Game {
+
+  import monocle.Macro._
+
+  val _players = mkLens[Game, Map[String, Player]]("players")
+  val _cards = mkLens[Game, Deck]("cards")
+  val _trashed = mkLens[Game, Deck]("trashed")
+
+}
+

@@ -22,6 +22,17 @@ case class Player(name: String,
                   deck: Deck,
                   turn: Turn = Turn(actions = 1, buys = 1, coins = 0)) extends PlayerOps {
 
+  import monocle.syntax._
+  import Player._
+
+  val handLens = this |-> _hand
+  val discardedLens = this |-> _discarded
+  val deckLens = this |-> _deck
+
+  val turnLens = this |-> _turn
+  val actionsLens = turnLens |-> _actions
+  val coinsLens = turnLens |-> _coins
+
   def canBuy(that: Card): Boolean = {
     val coins = hand.count { case (_: Treasure) => true; case _ => false}
     coins >= that.cost.value
@@ -37,7 +48,8 @@ case class Player(name: String,
 
   def draws: Player =
     deck.draw match {
-      case Some((card, newDeck)) => copy(hand = card +: hand, deck = newDeck)
+      case Some((card, newDeck)) =>
+        copy(hand = card +: hand, deck = newDeck)
       case None =>
         val (card, newDeck) = (deck ++ discarded).shuffle.draw.get
         copy(hand = card +: hand, discarded = EmptyDeck, deck = newDeck)
@@ -45,16 +57,15 @@ case class Player(name: String,
 
   def drawsN(n: Int): Player = (0 until n).foldLeft(this)((p, _) => p.draws)
 
-
   def plays(a: Action)(g: Game): (Player, Game) = {
     validateAction(a).fold((this, g)) { _ =>
       // discard this action and update the turn, then play the action
-      val p = withPlayer(discard(a)) {
-        p => p.copy(turn = p.turn.decrActions(1))
+      withPlayer(discard(a)) { p =>
+        withPlayer(p.actionsLens.modify(_ - 1)) { p2 =>
+          val game = playAction(a)(p2)(g)
+          (game.find(this), game)
+        }
       }
-
-      val game = playAction(a)(p)(g)
-      (game.find(this), game)
     }
   }
 
@@ -66,13 +77,23 @@ case class Player(name: String,
 }
 
 object Player {
+
+  import monocle.Macro._
+
+  val _hand = mkLens[Player, Deck]("hand")
+  val _discarded = mkLens[Player, Deck]("discarded")
+  val _deck = mkLens[Player, Deck]("deck")
+
+  val _turn = mkLens[Player, Turn]("turn")
+  val _actions = mkLens[Turn, Int]("actions")
+  val _buys = mkLens[Turn, Int]("buys")
+  val _coins = mkLens[Turn, Int]("coins")
+
   def apply(name: String, hand: Deck, discarded: Deck, deck: Deck) =
     new Player(name = name, hand = hand, discarded = discarded, deck = deck)
 }
 
 case class Turn(actions: Int, buys: Int, coins: Int) {
-  def decrActions(by: Int) = copy(actions = actions - by)
-  def incrActions(by: Int) = copy(actions = actions + by)
   def hasActions = actions > 0
 
   def decrBuys(by: Int) = copy(buys = buys - by)
@@ -86,3 +107,4 @@ case class Turn(actions: Int, buys: Int, coins: Int) {
       coins = coins + that.coins
     )
 }
+

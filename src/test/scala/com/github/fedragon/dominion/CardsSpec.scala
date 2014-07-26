@@ -9,7 +9,7 @@ class CardsSpec extends UnitSpec {
 
   "Cellar" should "translate to: +1 action, discard N cards and draw N cards" in {
     val subject = Player("P", hand = Deck(Cellar, Market), deck = Deck(Copper))
-    val game = Game(Vector(subject), EmptyDeck, EmptyDeck)
+    val game = Game(Map(subject.name -> subject), EmptyDeck, EmptyDeck)
 
     val (stateOne, _) = subject.plays(Cellar)(game)
 
@@ -21,7 +21,7 @@ class CardsSpec extends UnitSpec {
 
   "Market" should "translate to: +1 card, +1 action, +1 buy, +1 coin" in {
     val subject = Player("P", hand = Deck(Market), deck = Deck(Copper))
-    val game = Game(Vector(subject), EmptyDeck, EmptyDeck)
+    val game = Game(Map(subject.name -> subject), EmptyDeck, EmptyDeck)
 
     val (stateOne, _) = subject.plays(Market)(game)
 
@@ -32,7 +32,7 @@ class CardsSpec extends UnitSpec {
 
   "Mine" should "translate to: trash 1 treasure card and get 1 whose cost is +3" in {
     val subject = Player("P", hand = Deck(Mine, Copper), deck = EmptyDeck)
-    val game = Game(Vector(subject), Deck(Silver), EmptyDeck)
+    val game = Game(Map(subject.name -> subject), Deck(Silver), EmptyDeck)
 
     val (stateOne, updatedGame) = subject.plays(Mine)(game)
 
@@ -44,7 +44,7 @@ class CardsSpec extends UnitSpec {
 
   "Moat" should "translate to: +2 cards (when played as action)" in {
     val subject = Player("P", hand = Deck(Moat), deck = Deck(Copper, Copper))
-    val game = Game(Vector(subject), EmptyDeck, EmptyDeck)
+    val game = Game(Map(subject.name -> subject), EmptyDeck, EmptyDeck)
 
     val (stateOne, _) = subject.plays(Moat)(game)
 
@@ -55,7 +55,7 @@ class CardsSpec extends UnitSpec {
   "Moat" should "nullify any attack on the player" in {
     val subject = Player("P", hand = Deck(Witch), deck = Deck(Copper, Copper))
     val other = Player("O", hand = Deck(Moat), deck = EmptyDeck)
-    val game = Game(Vector(subject, other), EmptyDeck, EmptyDeck)
+    val game = Game(Map(subject.name -> subject, other.name -> other), EmptyDeck, EmptyDeck)
 
     val (_, gameOne) = subject.plays(Witch)(game)
 
@@ -66,7 +66,7 @@ class CardsSpec extends UnitSpec {
 
   "Smithy" should "translate to: +3 cards" in {
     val subject = Player("P", hand = Deck(Smithy), deck = Deck(Copper, Estate, Copper))
-    val game = Game(Vector(subject), EmptyDeck, EmptyDeck)
+    val game = Game(Map(subject.name -> subject), EmptyDeck, EmptyDeck)
 
     val (stateOne, _) = subject.plays(Smithy)(game)
 
@@ -77,7 +77,7 @@ class CardsSpec extends UnitSpec {
   "Witch" should "translate to: +2 cards and +1 curse to all the other players" in {
     val subject = Player("P", hand = Deck(Witch), deck = Deck(Copper, Copper))
     val other = Player("O", hand = EmptyDeck, deck = EmptyDeck)
-    val game = Game(Vector(subject, other), Deck(Curse), EmptyDeck)
+    val game = Game(Map(subject.name -> subject, other.name -> other), Deck(Curse), EmptyDeck)
 
     val (stateOne, gameOne) = subject.plays(Witch)(game)
 
