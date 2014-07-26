@@ -11,13 +11,13 @@ object Dominion {
     override def toString = name
   }
 
+  case class Coins(value: Int) extends AnyVal
+
   abstract class Action(val name: String, val cost: Coins) extends Card {
     def play(p: Player): Player
   }
 
   case class CardValue(value: Int) extends AnyVal
-
-  case class Coins(value: Int) extends AnyVal
 
   abstract class Treasure(val name: String, val cost: Coins, val value: CardValue) extends Card
 
@@ -37,9 +37,11 @@ object Dominion {
                     hand: Vector[Card] = Vector.empty,
                     discarded: Vector[Card] = Vector.empty,
                     deck: Deck,
-                    turn: Turn = Turn(1, 1)) {
+                    turn: Turn = Turn(actions = 1, buys = 1, coins = 0)) {
 
-    def canBuy(that: Card) = {
+    def addBonuses(t: Turn): Player = copy(turn = turn + t)
+
+    def canBuy(that: Card): Boolean = {
       val coins = hand.count { case (_: Treasure) => true; case _ => false}
       coins >= that.cost.value
     }
@@ -55,7 +57,7 @@ object Dominion {
 
     def discard: Player = copy(hand = Vector.empty, discarded = discarded ++ hand)
 
-    def playAction: Player =
+    def plays: Player =
       if (turn.hasActions)
         hand.find { case (_: Action) => true; case _ => false} match {
           case Some(action: Action) => action.play(this).copy(turn = turn.decrActions(1))
@@ -65,7 +67,7 @@ object Dominion {
 
   }
 
-  case class Turn(actions: Int, buys: Int) {
+  case class Turn(actions: Int, buys: Int, coins: Int) {
     def decrActions(by: Int) = copy(actions - by, buys)
     def incrActions(by: Int) = copy(actions + by, buys)
     def hasActions = actions > 0
@@ -73,6 +75,13 @@ object Dominion {
     def decrBuys(by: Int) = copy(actions, buys - by)
     def incrBuys(by: Int) = copy(actions, buys + by)
     def hasBuys = buys > 0
+
+    def +(that: Turn) =
+      copy(
+        actions = actions + that.actions,
+        buys = buys + that.buys,
+        coins = coins + that.coins
+      )
   }
 
 }
