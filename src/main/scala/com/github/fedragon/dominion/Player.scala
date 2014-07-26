@@ -10,9 +10,15 @@ sealed trait Strategy {
 case object DefaultStrategy extends Strategy {
   // TODO improve
 
-  def nextAction(cards: Deck): Option[Action] = cards.cards.collect { case Action(a) => a}.headOption
+  def nextAction(cards: Deck): Option[Action] =
+    cards.collect {
+      case Action(a) => a
+    }.headOption
 
-  def whatToDiscard(cards: Deck): Deck = cards.draw.map(c => Deck(Vector(c._1))).getOrElse(EmptyDeck)
+  def whatToDiscard(cards: Deck): Deck =
+    cards.draw.map {
+      case (card, _) => Deck(Vector(card))
+    }.getOrElse(EmptyDeck)
 }
 
 case class Player(name: String,
@@ -68,8 +74,6 @@ case class Player(name: String,
       }
     }
   }
-
-  def withBonus(t: Turn): Player = copy(turn = turn + t)
 
   private def validateAction(a: Action) =
     if (turn.hasActions) hand.find(_ == a)
