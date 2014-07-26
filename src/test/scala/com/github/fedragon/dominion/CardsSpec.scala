@@ -42,7 +42,7 @@ class CardsSpec extends UnitSpec {
     updatedGame.trashed.cards should contain only Copper
   }
 
-  "Smithy" should "translate to: + 3 cards" in {
+  "Smithy" should "translate to: +3 cards" in {
     val subject = Player("P", hand = Deck(Smithy), deck = Deck(Copper, Estate, Copper))
     val game = Game(Vector(subject), EmptyDeck, EmptyDeck)
 
@@ -50,5 +50,18 @@ class CardsSpec extends UnitSpec {
 
     stateOne.hand.cards.size shouldBe 3
     stateOne.deck.cards shouldBe 'empty
+  }
+
+  "Witch" should "translate to: +2 cards and +1 curse to all the other players" in {
+    val subject = Player("P", hand = Deck(Witch), deck = Deck(Copper, Copper))
+    val other = Player("O", hand = EmptyDeck, deck = EmptyDeck)
+    val game = Game(Vector(subject, other), Deck(Curse), EmptyDeck)
+
+    val (stateOne, gameOne) = subject.plays(Witch)(game)
+
+    stateOne.hand.cards.size shouldBe 2
+    stateOne.deck.cards shouldBe 'empty
+
+    gameOne.find(other).deck.cards should contain only Curse
   }
 }

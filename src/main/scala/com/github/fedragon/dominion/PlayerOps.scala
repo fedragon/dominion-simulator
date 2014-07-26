@@ -1,6 +1,7 @@
 package com.github.fedragon.dominion
 
 import com.github.fedragon.dominion.KingdomCards._
+import com.github.fedragon.dominion.VictoryCards._
 
 trait PlayerOps {
 
@@ -10,6 +11,7 @@ trait PlayerOps {
         // Discard N cards, draw N cards, +1 action
         val (discarded, newHand) = p.hand.partition(c => p.strategy.whatToDiscard(p.hand).contains(c))
         val p2 = p.copy(hand = newHand, discarded = p.discarded ++ discarded)
+
         g.update(p2.drawsN(discarded.size).withBonus(Turn(1, 0, 0)))
       case Market =>
         // Draw 1 card, +1 action, +1 buy, +1 coin
@@ -21,7 +23,7 @@ trait PlayerOps {
           (newTreasure, g2) <- g.trash(treasure).pick(treasureByCost(treasure.cost.value + 3))
         } yield {
           g2.update(withPlayer(p.discard(treasure)) { p2 =>
-            p2.copy(hand = p2.hand.+:(newTreasure))
+            p2.copy(hand = newTreasure +: p2.hand)
           })
         }
 
@@ -29,6 +31,12 @@ trait PlayerOps {
       case Smithy =>
         // Draw 3 cards
         g.update(p.drawsN(3))
+      case Witch =>
+        // Draw 2 cards, give 1 curse to all other players
+        val g2 = g.update(p.drawsN(2))
+        val ps = g2.playersExcept(p).map(pn => pn.copy(deck = Curse +: pn.deck))
+
+        ps.foldLeft(g2)((gn, pn) => gn.update(pn))
       case other =>
         throw new UnsupportedOperationException(s"Action not supported: $other")
     }

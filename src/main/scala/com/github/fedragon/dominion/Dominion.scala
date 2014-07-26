@@ -84,7 +84,9 @@ object Deck {
 }
 
 case class Game(players: Vector[Player], cards: Deck, trashed: Deck) {
-  def find(player: Player): Player = players.find(p => p.name == player.name).get
+  def find(player: Player): Player = players.find(_.name == player.name).get
+
+  def playersExcept(player: Player): Vector[Player] = players.filterNot(_.name == player.name)
 
   def pick(f: Card => Boolean): Option[(Card, Game)] = {
     cards.pick(f).map {
@@ -94,8 +96,8 @@ case class Game(players: Vector[Player], cards: Deck, trashed: Deck) {
 
   def trash(card: Card): Game = copy(trashed = card +: trashed)
 
-  def update(player: Player): Game = {
-    val index = players.indexWhere(p => p.name == player.name)
-    copy(players = players.updated(index, player))
+  def update(p: Player): Game = {
+    val index = players.indexWhere(_.name == p.name)
+    copy(players = players.updated(index, p))
   }
 }
