@@ -8,9 +8,11 @@ object KingdomCards {
 
   case object Mine extends Action("Mine", cost = Coins(5))
 
+  case object Moat extends Action("Moat", cost = Coins(2)) with Reaction
+
   case object Smithy extends Action("Smithy", cost = Coins(4))
 
-  case object Witch extends Action("Witch", cost = Coins(5))
+  case object Witch extends Action("Witch", cost = Coins(5)) with Attack
 
 }
 

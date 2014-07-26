@@ -17,7 +17,7 @@ trait PlayerOps {
         // Draw 1 card, +1 action, +1 buy, +1 coin
         g.update(p.draws.withBonus(Turn(1, 1, 1)))
       case Mine =>
-        // Trash 1 treasure card, get 1 whose cost is +3
+        // Trash 1 treasure card and get one whose cost is +3
         val g3 = for {
           treasure <- pickTreasure(p.hand)
           (newTreasure, g2) <- g.trash(treasure).pick(treasureByCost(treasure.cost.value + 3))
@@ -28,13 +28,16 @@ trait PlayerOps {
         }
 
         g3.getOrElse(g)
+      case Moat =>
+        // Draw 2 cards
+        g.update(p.drawsN(2))
       case Smithy =>
         // Draw 3 cards
         g.update(p.drawsN(3))
       case Witch =>
-        // Draw 2 cards, give 1 curse to all other players
+        // Draw 2 cards, give one curse to all other players
         val g2 = g.update(p.drawsN(2))
-        val ps = g2.playersExcept(p).map(pn => pn.copy(deck = Curse +: pn.deck))
+        val ps = victims(g2)(p).map(pn => pn.copy(deck = Curse +: pn.deck))
 
         ps.foldLeft(g2)((gn, pn) => gn.update(pn))
       case other =>
@@ -51,6 +54,15 @@ trait PlayerOps {
   private def treasureByCost(n: Int) = (c: Card) => c match {
     case Treasure(t) => t.cost.value == n
     case _ => false
+  }
+
+  private def victims(game: Game)(p: Player): Vector[Player] = {
+    game.players.filterNot { pn =>
+      pn.name == p.name || pn.hand.exists {
+        case _: (Action with Reaction) => true
+        case _ => false
+      }
+    }
   }
 }
 

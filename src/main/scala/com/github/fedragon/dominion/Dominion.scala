@@ -11,6 +11,12 @@ sealed trait Card {
 
 case class Coins(value: Int) extends AnyVal
 
+sealed trait Modifiers
+
+trait Attack extends Modifiers
+
+trait Reaction extends Modifiers
+
 abstract class Action(val name: String, val cost: Coins) extends Card
 
 object Action {
@@ -47,19 +53,13 @@ case class Deck(cards: Vector[Card]) {
 
   def draw: Option[(Card, Deck)] = cards.headOption.map(hd => (hd, copy(cards.tail)))
 
+  def exists(f: Card => Boolean): Boolean = cards.exists(f)
+
   def find(f: Card => Boolean): Option[Card] = cards.find(f)
 
   def partition(f: Card => Boolean): (Deck, Deck) = {
     val (a, b) = cards.partition(f)
     (copy(a), copy(b))
-  }
-
-  def pick(c: Card): Option[(Card, Deck)] = {
-    val index = cards.indexOf(c)
-
-    if (cards.isDefinedAt(index))
-      Some(c -> copy(cards.patch(index, Vector.empty[Card], 1)))
-    else None
   }
 
   def pick(f: Card => Boolean): Option[(Card, Deck)] = {

@@ -42,6 +42,28 @@ class CardsSpec extends UnitSpec {
     updatedGame.trashed.cards should contain only Copper
   }
 
+  "Moat" should "translate to: +2 cards (when played as action)" in {
+    val subject = Player("P", hand = Deck(Moat), deck = Deck(Copper, Copper))
+    val game = Game(Vector(subject), EmptyDeck, EmptyDeck)
+
+    val (stateOne, _) = subject.plays(Moat)(game)
+
+    stateOne.hand.cards.size shouldBe 2
+    stateOne.deck.cards shouldBe 'empty
+  }
+
+  "Moat" should "nullify any attack on the player" in {
+    val subject = Player("P", hand = Deck(Witch), deck = Deck(Copper, Copper))
+    val other = Player("O", hand = Deck(Moat), deck = EmptyDeck)
+    val game = Game(Vector(subject, other), EmptyDeck, EmptyDeck)
+
+    val (_, gameOne) = subject.plays(Witch)(game)
+
+    val otherOne = gameOne.find(other)
+    otherOne.deck.cards shouldNot contain (Curse)
+    otherOne.hand.cards should contain only Moat
+  }
+
   "Smithy" should "translate to: +3 cards" in {
     val subject = Player("P", hand = Deck(Smithy), deck = Deck(Copper, Estate, Copper))
     val game = Game(Vector(subject), EmptyDeck, EmptyDeck)
