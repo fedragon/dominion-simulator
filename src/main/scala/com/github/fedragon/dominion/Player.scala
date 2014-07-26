@@ -1,73 +1,62 @@
 package com.github.fedragon.dominion
 
+import Deck._
+
 sealed trait Strategy {
-  def whatToDiscard(cards: Cards): Cards
+  def whatToDiscard(cards: Deck): Deck
 }
 
 case object DefaultStrategy extends Strategy {
-  def whatToDiscard(cards: Cards): Cards = cards.headOption.toVector
+  // TODO improve
+  def whatToDiscard(cards: Deck): Deck = cards.draw.map(c => Deck(Vector(c._1))).getOrElse(EmptyDeck)
 }
 
 case class Player(name: String,
                   strategy: Strategy = DefaultStrategy,
-                  hand: Cards = ZeroCards,
-                  discarded: Cards = ZeroCards,
+                  hand: Deck = EmptyDeck,
+                  discarded: Deck = EmptyDeck,
                   deck: Deck,
                   turn: Turn = Turn(actions = 1, buys = 1, coins = 0)) extends PlayerOps {
-
-  import Player._
 
   def canBuy(that: Card): Boolean = {
     val coins = hand.count { case (_: Treasure) => true; case _ => false}
     coins >= that.cost.value
   }
 
-  // TODO rename to draws
-  def draw: Player =
+  def discard(card: Card): Player = copy(hand = hand.pick(card), discarded = card +: discarded)
+ 
+  def discardHand: Player = copy(hand = EmptyDeck, discarded = discarded ++ hand)
+
+  def draws: Player =
     deck.draw match {
       case Some((card, newDeck)) => copy(hand = card +: hand, deck = newDeck)
       case None =>
-        val (card, newDeck) = deck.insert(discarded).shuffle.draw.get
-        copy(hand = card +: hand, discarded = ZeroCards, deck = newDeck)
+        val (card, newDeck) = (deck ++ discarded).shuffle.draw.get
+        copy(hand = card +: hand, discarded = EmptyDeck, deck = newDeck)
     }
 
-  def drawN(n: Int): Player = {
-    //    def drawN(i: Int, p: Player): Player =
-    //      if (i == 0) p
-    //      else drawN(i - 1, p.draw)
-    //
-    //    drawN(n, this)
+  def drawsN(n: Int): Player = (0 until n).foldLeft(this)((p, _) => p.draws)
 
-    (0 until n).foldLeft(this)((p, _) => p.draw)
+  def plays(a: Action): Player = {
+    validateAction(a).fold(this) { _ =>
+      // discard this action, play it and update the turn
+      val afterAction = playAction(a)(discard(a))
+      afterAction.copy(turn = afterAction.turn.decrActions(1))
+    }
   }
-
-  def discardWithStrategy: Player = {
-    val (discarded, newHand) = hand.partition(c => strategy.whatToDiscard(hand).contains(c))
-    copy(hand = newHand, discarded = this.discarded ++ discarded)
-  }
-
-  def discardHand: Player = copy(hand = ZeroCards, discarded = discarded ++ hand)
 
   def withBonus(t: Turn): Player = copy(turn = turn + t)
 
-  def discard(card: Card): Player = {
-    val index = hand.indexOf(card)
-
-    val newHand =
-      if (hand.isDefinedAt(index))
-        hand.patch(index, ZeroCards, 1)
-      else hand
-
-    copy(hand = newHand, discarded = card +: discarded)
-  }
-
+  private def validateAction(a: Action) =
+    if (turn.hasActions) hand.find(_ == a)
+    else None
 }
 
 object Player {
-  def apply(name: String, hand: Cards, deck: Deck) =
+  def apply(name: String, hand: Deck, deck: Deck) =
     new Player(name = name, hand = hand, deck = deck)
 
-  def apply(name: String, hand: Cards, discarded: Cards, deck: Deck) =
+  def apply(name: String, hand: Deck, discarded: Deck, deck: Deck) =
     new Player(name = name, hand = hand, discarded = discarded, deck = deck)
 }
 
