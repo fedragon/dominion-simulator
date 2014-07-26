@@ -3,11 +3,15 @@ package com.github.fedragon.dominion
 import Deck._
 
 sealed trait Strategy {
+  def nextAction(cards: Deck): Option[Action]
   def whatToDiscard(cards: Deck): Deck
 }
 
 case object DefaultStrategy extends Strategy {
   // TODO improve
+
+  def nextAction(cards: Deck): Option[Action] = cards.cards.collect { case Action(a) => a}.headOption
+
   def whatToDiscard(cards: Deck): Deck = cards.draw.map(c => Deck(Vector(c._1))).getOrElse(EmptyDeck)
 }
 
@@ -23,8 +27,12 @@ case class Player(name: String,
     coins >= that.cost.value
   }
 
-  def discard(card: Card): Player = copy(hand = hand.pick(card), discarded = card +: discarded)
- 
+  def discard(card: Card): Player = {
+    hand.pick(card).fold(this) {
+      case (_, deck) => copy(hand = deck, discarded = card +: discarded)
+    }
+  }
+
   def discardHand: Player = copy(hand = EmptyDeck, discarded = discarded ++ hand)
 
   def draws: Player =
@@ -37,11 +45,16 @@ case class Player(name: String,
 
   def drawsN(n: Int): Player = (0 until n).foldLeft(this)((p, _) => p.draws)
 
-  def plays(a: Action): Player = {
-    validateAction(a).fold(this) { _ =>
-      // discard this action, play it and update the turn
-      val afterAction = playAction(a)(discard(a))
-      afterAction.copy(turn = afterAction.turn.decrActions(1))
+
+  def plays(a: Action)(g: Game): (Player, Game) = {
+    validateAction(a).fold((this, g)) { _ =>
+      // discard this action and update the turn, then play the action
+      val p = withPlayer(discard(a)) {
+        p => p.copy(turn = p.turn.decrActions(1))
+      }
+
+      val game = playAction(a)(p)(g)
+      (game.find(this), game)
     }
   }
 

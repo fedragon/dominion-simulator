@@ -25,12 +25,12 @@ class DominionSpec extends UnitSpec {
 
   it should "be able to.draws from his deck" in {
     val stateOne = new Player("Player", deck = Deck(Copper, Estate)).draws
-    stateOne.hand.cards should contain (Copper)
+    stateOne.hand.cards should contain(Copper)
     stateOne.deck.cards should contain only Estate
 
     val stateTwo = stateOne.draws
     stateTwo.deck.cards shouldBe 'empty
-    stateTwo.hand.cards should contain only (Copper, Estate)
+    stateTwo.hand.cards should contain only(Copper, Estate)
   }
 
   it should "be able to discard his.hand.cards" in {
@@ -43,24 +43,31 @@ class DominionSpec extends UnitSpec {
   }
 
   it should "play an action, if there is at least one such action in his.hand.cards" in {
-    val stateOne = Player("Player", Deck(Smithy), Deck(Copper, Estate, Copper))
-    val stateTwo = stateOne.plays(Smithy)
+    val subject = Player("Player", Deck(Smithy), Deck(Copper, Estate, Copper))
 
-    stateTwo.hand.cards.size shouldBe 3
-    stateTwo.deck.cards shouldBe 'empty
+    val (player, _) = subject.plays(Smithy)(Game(Vector(subject), EmptyDeck, EmptyDeck))
+
+    player.hand.cards.size shouldBe 3
+    player.deck.cards shouldBe 'empty
   }
 
   it should "not play an action, if it is not in his.hand.cards" in {
-    val player = new Player("Player", deck = Deck(Copper, Estate))
-    player.plays(Smithy) shouldBe player
+    val subject = new Player("Player", deck = Deck(Copper, Estate))
+
+    val (player, _) = subject.plays(Smithy)(Game(Vector(subject), EmptyDeck, EmptyDeck))
+
+    player shouldBe subject
   }
 
   it should "not be allowed to play more actions than he can" in {
-    val stateOne = Player("Player", Deck(Smithy), Deck(Copper, Estate, Copper))
-    val stateTwo = stateOne.plays(Smithy)
-    val stateThree = stateTwo.plays(Smithy)
+    val subject = Player("Player", Deck(Smithy), Deck(Copper, Estate, Copper))
+    val game = Game(Vector(subject), EmptyDeck, EmptyDeck)
 
-    stateOne should not equal stateTwo
-    stateTwo shouldEqual stateThree
+    // Smithy does not affect `game` so there's no problem reusing the same instance
+    val (stateOne, _) = subject.plays(Smithy)(game)
+    val (stateTwo, _) = stateOne.plays(Smithy)(game)
+
+    stateOne should not equal subject
+    stateTwo shouldEqual stateOne
   }
 }
