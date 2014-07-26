@@ -1,19 +1,24 @@
 package com.github.fedragon.dominion
 
 object KingdomCards {
-  case object Market extends Action("Market", cost = Coins(5)) {
-    def play(p: Player): Player = p.draw.withBonus(Turn(1, 1, 1)) // Draw 1 card, add 1 action, 1 buy, 1 extra coin
-  }
-  case object Smithy extends Action("Smithy", cost = Coins(4)) {
-    def play(p: Player): Player = p.draw.draw.draw // Draw 3 cards
-  }
+
+  case object Cellar extends Action("Cellar", cost = Coins(2))
+
+  case object Market extends Action("Market", cost = Coins(5))
+
+  case object Smithy extends Action("Smithy", cost = Coins(4))
+
 }
 
 object TreasureCards {
+
   case object Copper extends Treasure("Copper", cost = Coins(0), value = CardValue(1))
+
 }
 
 object VictoryCards {
+
   case object Estate extends Victory("Estate", cost = Coins(2), value = CardValue(1))
+
 }
 

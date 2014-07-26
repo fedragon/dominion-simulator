@@ -14,10 +14,6 @@ class DominionSpec extends UnitSpec {
     newDeck.cards shouldBe 'empty
   }
 
-  it should "force a shuffle with the discarded pile when there are no more cards" in {
-
-  }
-
   "A player" should "be able to buy a card if he has enough coins" in {
     val player = Player("Player", fillWith(7)(Copper), ZeroCards, Deck(ZeroCards))
     player.canBuy(Estate) shouldBe true
@@ -46,7 +42,7 @@ class DominionSpec extends UnitSpec {
   }
 
   it should "play an action, if there is at least one such action in his hand" in {
-    val stateOne = Player("Player", hand = Cards(Smithy), deck = Deck(Cards(Copper, Estate, Copper)))
+    val stateOne = Player("Player", Cards(Smithy), Deck(Cards(Copper, Estate, Copper)))
     val stateTwo = stateOne.plays(Smithy)
 
     stateTwo.hand.size shouldBe 3
@@ -59,7 +55,7 @@ class DominionSpec extends UnitSpec {
   }
 
   it should "not be allowed to play more actions than he can" in {
-    val stateOne = Player("Player", hand = Cards(Smithy), deck = Deck(Cards(Copper, Estate, Copper)))
+    val stateOne = Player("Player", Cards(Smithy), Deck(Cards(Copper, Estate, Copper)))
     val stateTwo = stateOne.plays(Smithy)
     val stateThree = stateTwo.plays(Smithy)
 

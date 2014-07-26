@@ -11,9 +11,7 @@ sealed trait Card {
 
 case class Coins(value: Int) extends AnyVal
 
-abstract class Action(val name: String, val cost: Coins) extends Card {
-  def play(p: Player): Player
-}
+abstract class Action(val name: String, val cost: Coins) extends Card
 
 case class CardValue(value: Int) extends AnyVal
 

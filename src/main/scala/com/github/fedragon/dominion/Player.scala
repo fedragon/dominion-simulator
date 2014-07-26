@@ -1,10 +1,19 @@
 package com.github.fedragon.dominion
 
+sealed trait Strategy {
+  def whatToDiscard(cards: Cards): Cards
+}
+
+case object DefaultStrategy extends Strategy {
+  def whatToDiscard(cards: Cards): Cards = cards.headOption.toVector
+}
+
 case class Player(name: String,
+                  strategy: Strategy = DefaultStrategy,
                   hand: Cards = ZeroCards,
                   discarded: Cards = ZeroCards,
                   deck: Deck,
-                  turn: Turn = Turn(actions = 1, buys = 1, coins = 0)) {
+                  turn: Turn = Turn(actions = 1, buys = 1, coins = 0)) extends PlayerOps {
 
   import Player._
 
@@ -13,6 +22,7 @@ case class Player(name: String,
     coins >= that.cost.value
   }
 
+  // TODO rename to draws
   def draw: Player =
     deck.draw match {
       case Some((card, newDeck)) => copy(hand = card +: hand, deck = newDeck)
@@ -20,6 +30,25 @@ case class Player(name: String,
         val (card, newDeck) = deck.insert(discarded).shuffle.draw.get
         copy(hand = card +: hand, discarded = ZeroCards, deck = newDeck)
     }
+
+  def drawN(n: Int): Player = {
+    //    def drawN(i: Int, p: Player): Player =
+    //      if (i == 0) p
+    //      else drawN(i - 1, p.draw)
+    //
+    //    drawN(n, this)
+
+    (0 until n).foldLeft(this)((p, _) => p.draw)
+  }
+
+  def discardWithStrategy: Player = {
+    val (discarded, newHand) = hand.partition(c => strategy.whatToDiscard(hand).contains(c))
+    copy(hand = newHand, discarded = this.discarded ++ discarded)
+  }
+
+  def discardHand: Player = copy(hand = ZeroCards, discarded = discarded ++ hand)
+
+  def withBonus(t: Turn): Player = copy(turn = turn + t)
 
   def discard(card: Card): Player = {
     val index = hand.indexOf(card)
@@ -32,26 +61,14 @@ case class Player(name: String,
     copy(hand = newHand, discarded = card +: discarded)
   }
 
-  def discardHand: Player = copy(hand = ZeroCards, discarded = discarded ++ hand)
-
-  def plays(a: Action): Player =
-    validateAction(a).fold(this) { _ =>
-      (a.play _ andThen afterAction(a))(this)
-    }
-
-  def validateAction(a: Action) =
-    if (turn.hasActions) hand.find(_ == a)
-    else None
-
-  def withBonus(t: Turn): Player = copy(turn = turn + t)
 }
 
 object Player {
+  def apply(name: String, hand: Cards, deck: Deck) =
+    new Player(name = name, hand = hand, deck = deck)
 
-  private def afterAction(a: Action)(p: Player): Player = {
-    val p2 = p.discard(a)
-    p2.copy(turn = p2.turn.decrActions(1))
-  }
+  def apply(name: String, hand: Cards, discarded: Cards, deck: Deck) =
+    new Player(name = name, hand = hand, discarded = discarded, deck = deck)
 }
 
 case class Turn(actions: Int, buys: Int, coins: Int) {
