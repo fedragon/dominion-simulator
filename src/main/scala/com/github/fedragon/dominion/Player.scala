@@ -29,7 +29,7 @@ case class Player(name: String,
 
   def discard(card: Card): Player = {
     hand.pick(card).fold(this) {
-      case (_, deck) => copy(hand = deck, discarded = card +: discarded)
+      case (_, newHand) => copy(hand = newHand, discarded = card +: discarded)
     }
   }
 
@@ -66,9 +66,6 @@ case class Player(name: String,
 }
 
 object Player {
-  def apply(name: String, hand: Deck, deck: Deck) =
-    new Player(name = name, hand = hand, deck = deck)
-
   def apply(name: String, hand: Deck, discarded: Deck, deck: Deck) =
     new Player(name = name, hand = hand, discarded = discarded, deck = deck)
 }

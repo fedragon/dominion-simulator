@@ -8,7 +8,7 @@ class CardsSpec extends UnitSpec {
   import VictoryCards._
 
   "Cellar" should "translate to: +1 action, discard N cards and draw N cards" in {
-    val subject = Player("P", Deck(Cellar, Market), Deck(Copper))
+    val subject = Player("P", hand = Deck(Cellar, Market), deck = Deck(Copper))
     val game = Game(Vector(subject), EmptyDeck, EmptyDeck)
 
     val (stateOne, _) = subject.plays(Cellar)(game)
@@ -20,7 +20,7 @@ class CardsSpec extends UnitSpec {
   }
 
   "Market" should "translate to: +1 card, +1 action, +1 buy, +1 coin" in {
-    val subject = Player("P", Deck(Market), Deck(Copper))
+    val subject = Player("P", hand = Deck(Market), deck = Deck(Copper))
     val game = Game(Vector(subject), EmptyDeck, EmptyDeck)
 
     val (stateOne, _) = subject.plays(Market)(game)
@@ -31,7 +31,7 @@ class CardsSpec extends UnitSpec {
   }
 
   "Mine" should "translate to: trash 1 treasure card and get 1 whose cost is +3" in {
-    val subject = Player("P", Deck(Mine, Copper), EmptyDeck)
+    val subject = Player("P", hand = Deck(Mine, Copper), deck = EmptyDeck)
     val game = Game(Vector(subject), Deck(Silver), EmptyDeck)
 
     val (stateOne, updatedGame) = subject.plays(Mine)(game)
@@ -43,7 +43,7 @@ class CardsSpec extends UnitSpec {
   }
 
   "Smithy" should "translate to: + 3 cards" in {
-    val subject = Player("P", Deck(Smithy), Deck(Copper, Estate, Copper))
+    val subject = Player("P", hand = Deck(Smithy), deck = Deck(Copper, Estate, Copper))
     val game = Game(Vector(subject), EmptyDeck, EmptyDeck)
 
     val (stateOne, _) = subject.plays(Smithy)(game)

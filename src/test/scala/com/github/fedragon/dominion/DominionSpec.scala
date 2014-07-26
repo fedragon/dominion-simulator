@@ -43,7 +43,7 @@ class DominionSpec extends UnitSpec {
   }
 
   it should "play an action, if there is at least one such action in his.hand.cards" in {
-    val subject = Player("Player", Deck(Smithy), Deck(Copper, Estate, Copper))
+    val subject = Player("Player", hand = Deck(Smithy), deck = Deck(Copper, Estate, Copper))
 
     val (player, _) = subject.plays(Smithy)(Game(Vector(subject), EmptyDeck, EmptyDeck))
 
@@ -60,7 +60,7 @@ class DominionSpec extends UnitSpec {
   }
 
   it should "not be allowed to play more actions than he can" in {
-    val subject = Player("Player", Deck(Smithy), Deck(Copper, Estate, Copper))
+    val subject = Player("Player", hand = Deck(Smithy), deck = Deck(Copper, Estate, Copper))
     val game = Game(Vector(subject), EmptyDeck, EmptyDeck)
 
     // Smithy does not affect `game` so there's no problem reusing the same instance
