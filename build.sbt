@@ -2,7 +2,7 @@ name := "dominion-simulator"
 
 version := "0.1.0"
 
-scalaVersion := "2.11.0"
+scalaVersion := "2.11.1"
 
 resolvers ++= Seq(
   "Sonatype Releases" at "http://oss.sonatype.org/content/repositories/releases"
