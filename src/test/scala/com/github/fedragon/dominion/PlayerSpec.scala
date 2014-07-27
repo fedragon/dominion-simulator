@@ -8,22 +8,22 @@ import KingdomCards._
 class PlayerSpec extends UnitSpec {
 
   "A player" should "be able to draw cards from his deck" in {
-    val stateOne = new Player("P", deck = Deck(Copper, Estate)).draws
-    stateOne.hand should contain(Copper)
-    stateOne.deck should contain only Estate
+    val pStateOne = new Player("P", deck = Deck(Copper, Estate)).draws
+    pStateOne.hand should contain(Copper)
+    pStateOne.deck should contain only Estate
 
-    val stateTwo = stateOne.draws
-    stateTwo.deck shouldBe 'empty
-    stateTwo.hand should contain only(Copper, Estate)
+    val pStateTwo = pStateOne.draws
+    pStateTwo.deck shouldBe 'empty
+    pStateTwo.hand should contain only(Copper, Estate)
   }
 
   it should "be able to discard his hand" in {
-    val stateOne = new Player("P", deck = Deck(Copper, Estate)).draws
-    stateOne.hand should contain(Copper)
+    val pStateOne = new Player("P", deck = Deck(Copper, Estate)).draws
+    pStateOne.hand should contain(Copper)
 
-    val stateTwo = stateOne.discardHand
-    stateTwo.hand shouldBe 'empty
-    stateTwo.discarded should contain(Copper)
+    val pStateTwo = pStateOne.discardHand
+    pStateTwo.hand shouldBe 'empty
+    pStateTwo.discarded should contain(Copper)
   }
 
   it should "play an action, if there is at least one such action in his hand" in {
@@ -48,22 +48,45 @@ class PlayerSpec extends UnitSpec {
     val game = Game(Map(subject.name -> subject), EmptyDeck, EmptyDeck)
 
     // Smithy does not affect `game` so there's no problem reusing the same instance
-    val (stateOne, _) = subject.plays(Smithy)(game)
-    val (stateTwo, _) = stateOne.plays(Smithy)(game)
+    val (pStateOne, _) = subject.plays(Smithy)(game)
+    val (pStateTwo, _) = pStateOne.plays(Smithy)(game)
 
-    stateOne should not equal subject
-    stateTwo shouldEqual stateOne
+    pStateOne should not equal subject
+    pStateTwo shouldEqual pStateOne
   }
 
-  it should "be able to buy a card, if he has enough coins" in {
+  it should "not be able to buy a card, if he does not have enough coins" in {
+    val subject = Player("P", hand = Deck(Copper), deck = EmptyDeck)
+    val game = Game(Map(subject.name -> subject), Deck(Moat), EmptyDeck)
+
+    val (pStateOne, gStateOne) = subject.buys(Moat)(game)
+
+    pStateOne.buysLens.get shouldBe 1
+    pStateOne.hand should contain only Copper
+    gStateOne.cards should contain only Moat
+  }
+
+  it should "be able to buy a card, if he has enough coins in his hand" in {
     val subject = Player("P", hand = Deck(Silver), deck = EmptyDeck)
     val game = Game(Map(subject.name -> subject), Deck(Moat), EmptyDeck)
 
-    val (stateOne, gameOne) = subject.buys(Moat)(game)
+    val (pStateOne, gStateOne) = subject.buys(Moat)(game)
 
-    stateOne.hand should contain only Moat
-    gameOne.cards shouldBe 'empty
+    pStateOne.buysLens.get shouldBe 0
+    pStateOne.hand should contain only Moat
+    gStateOne.cards shouldBe 'empty
   }
 
-  // TODO test buys with extraCoins and when the preferred card is not available in the main deck
+  it should "be able to buy a card, if he has enough coins including extra coins" in {
+    val subject = Player("P", hand = Deck(Copper), deck = EmptyDeck, turn = Turn(0, 1, Coins(1)))
+    val game = Game(Map(subject.name -> subject), Deck(Moat), EmptyDeck)
+
+    val (pStateOne, gStateOne) = subject.buys(Moat)(game)
+
+    pStateOne.buysLens.get shouldBe 0
+    pStateOne.hand should contain only Moat
+    gStateOne.cards shouldBe 'empty
+  }
+
+  // TODO test buys when the preferred card is not available in the main deck
 }

@@ -42,8 +42,6 @@ trait PlayerOps {
         throw new UnsupportedOperationException(s"Action not supported: $other")
     }
 
-  def withPlayer[T](p: Player)(f: Player => T) = f(p)
-
   private def pickTreasure(p: Player) = p.treasures.headOption
 
   private def treasureByCost(n: Coins) = (c: Card) => c match {

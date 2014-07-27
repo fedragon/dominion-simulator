@@ -40,6 +40,8 @@ case class Player(name: String,
   def buys(card: Card)(g: Game): (Player, Game) = {
     val cost = card.cost
 
+    if (cost > coins) return (this, g)
+
     val p: Player =
       if (extraCoinsLens.get >= cost)
         extraCoinsLens.modify(_ - cost)
@@ -57,7 +59,7 @@ case class Player(name: String,
 
     val (p2, g2) = g.pick(_ == card).fold((p, g)) {
       case (_, gx) =>
-        val px = p.handLens.modify(card +: _)
+        val px = p.handLens.modify(card +: _).buysLens.modify(_ - 1)
         px -> gx.update(px)
     }
 
@@ -135,9 +137,7 @@ case class Player(name: String,
       val (px, gx) = state
 
       if (px.buysLens.get > 0)
-        if (px.coins >= card.cost)
-          px.buys(card)(gx)
-        else (px, gx)
+        px.buys(card)(gx)
       else (px, gx)
     }
 

@@ -8,5 +8,6 @@ package object dominion {
 
   type Treasures = Vector[Treasure]
 
+  def withPlayer[T](p: Player)(f: Player => T) = f(p)
 }
 
