@@ -111,6 +111,42 @@ case class Player(name: String,
     }
   }
 
+  def playRound(g: Game): Game = {
+
+    // Actions Phase
+
+    val actions = sortByPreference(handLens.get.collect {
+      case Action(a) => a
+    })
+
+    val (p1, g1) = actions.foldLeft((this, g)) { (state, action) =>
+      val (px, gx) = state
+      if (px.actionsLens.get > 0)
+        px.plays(action)(gx)
+      else (px, gx)
+    }
+
+    // Buy Phase
+
+    // TODO should be decided by the strategy
+    val cardsByName = g1.cards.groupBy(_.name).map(_._2.head)
+
+    val (p2, g2) = cardsByName.foldLeft((p1, g1)) { (state, card) =>
+      val (px, gx) = state
+
+      if (px.buysLens.get > 0)
+        if (px.coins >= card.cost)
+          px.buys(card)(gx)
+        else (px, gx)
+      else (px, gx)
+    }
+
+    // Cleanup Phase
+
+    // discard and draw next 5 cards
+    g2.update(p2.discardHand.drawsN(5))
+  }
+
   def treasures: Treasures = handLens.get.collect {
     case Treasure(t) => t
   }

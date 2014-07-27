@@ -45,3 +45,18 @@ object Game {
 
 }
 
+object Dominion {
+
+  def playGame(players: Map[String, Player]) = {
+    var game = Game(players, EmptyDeck, EmptyDeck)
+
+    while (!finished(game)) {
+      game = players.values.foldLeft(game) { (g, player) =>
+        player.playRound(g)
+      }
+    }
+
+  }
+
+  private def finished(game: Game): Boolean = ???
+}
