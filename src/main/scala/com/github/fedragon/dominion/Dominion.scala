@@ -10,11 +10,6 @@ case class Game(players: Map[String, Player], cards: Deck, trashed: Deck) {
 
   def find(p: Player): Player = players(p.name)
 
-  def playersExcept(p: Player): Vector[Player] =
-    players.collect {
-      case (n, px) if n =/= p.name => px
-    }.toVector
-
   def pick(f: Card => Boolean): Option[(Card, Game)] = {
     cards.pick(f).map {
       case (card, deck) => (card, this |-> _cards set deck)
@@ -48,9 +43,13 @@ object Game {
 
 object Dominion {
 
-  def playGame(players: Map[String, Player]) = {
-    // TODO create starting deck and assign cards to each player
-    var game = Game(players, EmptyDeck, EmptyDeck)
+  import TreasureCards._
+  import VictoryCards._
+
+  def playGame(playerNames: Vector[String]) = {
+    val players = playerNames.map(createPlayer).toMap
+
+    var game = Game(players, createStartingDeck(players.size), EmptyDeck)
 
     while (!finished(game)) {
       game = players.values.foldLeft(game) { (g, player) =>
@@ -58,7 +57,29 @@ object Dominion {
       }
     }
 
+    declareWinner(game)
   }
 
-  private def finished(game: Game): Boolean = ???
+  private def createPlayer(name: String) =
+    name -> Player(name, deck = Deck.fillWith(7)(Copper) ++ Deck.fillWith(3)(Estate))
+
+  private def createStartingDeck(nOfPlayers: Int): Deck =
+  // TODO add more cards
+    Deck.fillWith(60 - nOfPlayers * 7)(Copper) ++
+      Deck.fillWith(12)(Estate) ++
+      Deck.fillWith(12)(Duchy) ++
+      Deck.fillWith(12)(Province)
+
+  private def finished(game: Game): Boolean =
+  // TODO add other condition: 3 piles are empty
+    game.cards.find(_ === Province).isEmpty
+
+  private def declareWinner(game: Game): Unit = {
+    val ranking = game.players.map {
+      case (name, player) =>
+        name -> player.victories.foldLeft(CardValue(0))(_ + _.value)
+    }.toSeq.sortWith(_._2 > _._2)
+
+    ranking.foreach(println)
+  }
 }

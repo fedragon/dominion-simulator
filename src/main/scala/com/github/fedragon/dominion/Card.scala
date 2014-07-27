@@ -36,7 +36,9 @@ object Treasure {
   }
 }
 
-case class CardValue(value: Int) extends AnyVal
+case class CardValue(value: Int) extends AnyVal {
+  def +(that: CardValue) = CardValue(value + that.value)
+}
 
 abstract class Victory(val name: String, val cost: Coins, val value: CardValue) extends Card
 
