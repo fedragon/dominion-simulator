@@ -9,9 +9,10 @@ sealed trait Strategy {
 
 trait DefaultStrategy extends Strategy {
   // TODO improve
+  self: Player =>
 
   override def nextAction(cards: Deck): Option[Action] =
-    cards.collect {
+    handLens.get.collect {
       case Action(a) => a
     }.headOption
 
@@ -97,11 +98,6 @@ object Player {
 }
 
 case class Turn(actions: Int, buys: Int, coins: Int) {
-  def hasActions = actions > 0
-
-  def decrBuys(by: Int) = copy(buys = buys - by)
-  def incrBuys(by: Int) = copy(buys = buys + by)
-  def hasBuys = buys > 0
 
   def +(that: Turn) =
     copy(

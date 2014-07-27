@@ -19,7 +19,7 @@ trait PlayerOps {
       case Mine =>
         // Trash 1 treasure card and get one whose cost is +3
         val g3 = for {
-          treasure <- pickTreasure(p.hand)
+          treasure <- pickTreasure(p)
           (newTreasure, g2) <- g.trash(treasure).pick(treasureByCost(treasure.cost.value + 3))
         } yield {
           g2.update(withPlayer(p.discard(treasure))(_.handLens.modify(newTreasure +: _)))
@@ -44,8 +44,8 @@ trait PlayerOps {
 
   def withPlayer[T](p: Player)(f: Player => T) = f(p)
 
-  private def pickTreasure(cards: Deck) =
-    cards.collect {
+  private def pickTreasure(p: Player) =
+    p.handLens.get.collect {
       case Treasure(t) => t
     }.headOption
 
