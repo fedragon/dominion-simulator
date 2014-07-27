@@ -44,10 +44,7 @@ trait PlayerOps {
 
   def withPlayer[T](p: Player)(f: Player => T) = f(p)
 
-  private def pickTreasure(p: Player) =
-    p.handLens.get.collect {
-      case Treasure(t) => t
-    }.headOption
+  private def pickTreasure(p: Player) = p.treasures.headOption
 
   private def treasureByCost(n: Coins) = (c: Card) => c match {
     case Treasure(t) => t.cost == n

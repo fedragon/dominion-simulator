@@ -3,7 +3,6 @@ package com.github.fedragon.dominion
 import Deck._
 
 sealed trait Strategy {
-  def nextAction(cards: Deck): Option[Action]
   def whatToDiscard(cards: Deck): Deck
 }
 
@@ -11,10 +10,9 @@ trait DefaultStrategy extends Strategy {
   // TODO improve
   self: Player =>
 
-  override def nextAction(cards: Deck): Option[Action] =
-    handLens.get.collect {
-      case Action(a) => a
-    }.headOption
+  def sortByPreference(actions: Actions): Actions = actions.sortWith(_.cost > _.cost)
+
+  def buyPreference(cards: Deck): Deck = cards.sortWith(_.cost > _.cost)
 
   override def whatToDiscard(cards: Deck): Deck =
     cards.draw.map {
@@ -36,11 +34,55 @@ case class Player(name: String,
 
   val turnLens = this |-> _turn
   val actionsLens = turnLens |-> _actions
-  val coinsLens = turnLens |-> _coins
+  val buysLens = turnLens |-> _buys
+  val extraCoinsLens = turnLens |-> _coins
+
+  def buys(card: Card)(g: Game): (Player, Game) = {
+    val cost = card.cost
+
+    val p: Player =
+      if (extraCoinsLens.get >= cost)
+        extraCoinsLens.modify(_ - cost)
+      else {
+        val diff = cost - extraCoinsLens.get
+        val (_, cardsToDiscard) = treasures.foldLeft((diff, EmptyDeck)) { (state, treasure) =>
+          val (remaining, cards) = state
+
+          if (remaining == Coins(0)) (Coins(0), cards)
+          else (remaining - treasure.value, treasure +: cards)
+        }
+
+        discard(cardsToDiscard)
+      }
+
+    val (p2, g2) = g.pick(_ == card).fold((p, g)) {
+      case (_, gx) =>
+        val px = p.handLens.modify(card +: _)
+        px -> gx.update(px)
+    }
+
+    (p2, g2.update(p2))
+  }
+
+  def coins: Coins =
+    extraCoinsLens.get + handLens.get.foldLeft(Coins(0)) {
+      (acc, card) => acc + (card match {
+        case t: Treasure => t.value
+        case _ => Coins(0)
+      })
+    }
 
   def discard(card: Card): Player = {
     hand.pick(_ == card).fold(this) {
       case (_, newHand) => copy(hand = newHand, discarded = card +: discarded)
+    }
+  }
+
+  def discard(cards: Deck): Player = {
+    cards.foldLeft(this) { (p, card) =>
+      hand.pick(_ == card).fold(p) {
+        case (_, newHand) => p.copy(hand = newHand, discarded = card +: discarded)
+      }
     }
   }
 
@@ -69,6 +111,10 @@ case class Player(name: String,
     }
   }
 
+  def treasures: Treasures = handLens.get.collect {
+    case Treasure(t) => t
+  }
+
   private def validateAction(a: Action) =
     if (actionsLens.get > 0) hand.find(_ == a)
     else None
@@ -92,7 +138,6 @@ object Player {
 }
 
 case class Turn(actions: Int, buys: Int, coins: Coins) {
-
   def +(that: Turn) =
     copy(
       actions = actions + that.actions,

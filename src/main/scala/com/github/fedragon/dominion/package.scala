@@ -5,4 +5,8 @@ package object dominion {
   type Actions = Vector[Action]
 
   type Deck = Vector[Card]
+
+  type Treasures = Vector[Treasure]
+
 }
+
