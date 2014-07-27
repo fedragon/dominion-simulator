@@ -16,7 +16,7 @@ class CardsSpec extends UnitSpec {
     stateOne.hand should contain only Copper
     stateOne.discarded should contain only(Cellar, Market)
     stateOne.deck shouldBe 'empty
-    stateOne.turn shouldBe Turn(actions = 1, buys = 1, coins = 0)
+    stateOne.turn shouldBe Turn(actions = 1, buys = 1, coins = Coins(0))
   }
 
   "Market" should "translate to: +1 card, +1 action, +1 buy, +1 coin" in {
@@ -27,7 +27,7 @@ class CardsSpec extends UnitSpec {
 
     stateOne.hand should contain only Copper
     stateOne.deck shouldBe 'empty
-    stateOne.turn shouldBe Turn(actions = 1, buys = 2, coins = 1)
+    stateOne.turn shouldBe Turn(actions = 1, buys = 2, coins = Coins(1))
   }
 
   "Mine" should "translate to: trash 1 treasure card and get 1 whose cost is +3" in {
