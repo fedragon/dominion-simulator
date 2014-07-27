@@ -154,6 +154,10 @@ case class Player(name: String,
     case Treasure(t) => t
   }
 
+  def victories: Victories = handLens.get.collect {
+    case Victory(v) => v
+  }
+
   private def validateAction(a: Action) =
     if (actionsLens.get > 0) hand.find(_ === a)
     else None

@@ -10,6 +10,8 @@ package object dominion {
 
   type Treasures = Vector[Treasure]
 
+  type Victories = Vector[Victory]
+
   def withPlayer[T](p: Player)(f: Player => T) = f(p)
 
   implicit val CardEqual: Equal[Card] = Equal.equalA

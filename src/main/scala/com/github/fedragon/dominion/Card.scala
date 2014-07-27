@@ -40,3 +40,10 @@ case class CardValue(value: Int) extends AnyVal
 
 abstract class Victory(val name: String, val cost: Coins, val value: CardValue) extends Card
 
+object Victory {
+  def unapply(c: Card): Option[Victory] = c match {
+    case v: Victory => Some(v)
+    case _ => None
+  }
+}
+
