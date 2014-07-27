@@ -24,7 +24,9 @@ trait PlayerOps {
           treasure <- pickTreasure(p)
           (newTreasure, g2) <- g.trash(treasure).pick(treasureByCost(treasure.cost + Coins(3)))
         } yield {
-          g2.update(withPlayer(p.discard(treasure))(_.handLens.modify(newTreasure +: _)))
+          g2.update(withPlayer(p.discard(treasure)) {
+            _.handLens.modify(newTreasure +: _)
+          })
         }
 
         g3.getOrElse(g)

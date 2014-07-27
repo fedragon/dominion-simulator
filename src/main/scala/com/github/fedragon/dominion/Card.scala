@@ -10,9 +10,6 @@ sealed trait Card {
 case class Coins(value: Int) extends AnyVal {
   def +(that: Coins) = Coins(value + that.value)
   def -(that: Coins) = Coins(value - that.value)
-
-  def >(that: Coins) = value > that.value
-  def >=(that: Coins) = value >= that.value
 }
 
 sealed trait Modifiers

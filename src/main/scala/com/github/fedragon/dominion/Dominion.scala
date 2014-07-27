@@ -49,6 +49,7 @@ object Game {
 object Dominion {
 
   def playGame(players: Map[String, Player]) = {
+    // TODO create starting deck and assign cards to each player
     var game = Game(players, EmptyDeck, EmptyDeck)
 
     while (!finished(game)) {

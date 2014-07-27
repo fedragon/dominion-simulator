@@ -112,37 +112,41 @@ case class Player(name: String,
     }
   }
 
-  def playRound(g: Game): Game = {
+  def playRound(game: Game): Game = {
+
+    def playActions(p: Player, g: Game): (Player, Game) = {
+      val actions = sortByPreference(p.handLens.get.collect {
+        case Action(a) => a
+      })
+
+      actions.foldLeft((p, g)) { (state, action) =>
+        val (px, gx) = state
+        if (px.actionsLens.get > 0)
+          px.plays(action)(gx)
+        else (px, gx)
+      }
+    }
+
+    def playBuys(p: Player, g: Game): (Player, Game) = {
+      // TODO should be decided by the strategy
+      val preferredCards = g.cards.groupBy(_.name).map(_._2.head)
+
+      preferredCards.foldLeft((p, g)) { (state, card) =>
+        val (px, gx) = state
+
+        if (px.buysLens.get > 0)
+          px.buys(card)(gx)
+        else (px, gx)
+      }
+    }
 
     // Actions Phase
-
-    val actions = sortByPreference(handLens.get.collect {
-      case Action(a) => a
-    })
-
-    val (p1, g1) = actions.foldLeft((this, g)) { (state, action) =>
-      val (px, gx) = state
-      if (px.actionsLens.get > 0)
-        px.plays(action)(gx)
-      else (px, gx)
-    }
+    val (p1, g1) = playActions(this, game)
 
     // Buy Phase
+    val (p2, g2) = playBuys(p1, g1)
 
-    // TODO should be decided by the strategy
-    val cardsByName = g1.cards.groupBy(_.name).map(_._2.head)
-
-    val (p2, g2) = cardsByName.foldLeft((p1, g1)) { (state, card) =>
-      val (px, gx) = state
-
-      if (px.buysLens.get > 0)
-        px.buys(card)(gx)
-      else (px, gx)
-    }
-
-    // Cleanup Phase
-
-    // discard hand and draw next 5 cards
+    // Cleanup Phase: discard hand and draw next 5 cards
     g2.update(p2.discardHand.drawsN(5))
   }
 
