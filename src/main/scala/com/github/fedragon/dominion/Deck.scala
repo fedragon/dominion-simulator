@@ -9,8 +9,6 @@ object Deck {
 
   def fillWith(n: Int)(card: Card) = Vector.fill(n)(card)
 
-  type Deck = Vector[Card]
-
   implicit class ImplicitDeck(cards: Deck) {
 
     def draw: Option[(Card, Deck)] = cards.headOption.map(hd => (hd, cards.tail))
