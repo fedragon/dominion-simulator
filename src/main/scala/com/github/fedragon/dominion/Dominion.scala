@@ -7,10 +7,12 @@ case class Game(players: Map[String, Player], cards: Deck, trashed: Deck) {
   import Game._
   import monocle.syntax._
 
-  def find(p: Player) = players(p.name)
+  def find(p: Player): Player = players(p.name)
 
   def playersExcept(p: Player): Vector[Player] =
-    players.filterNot { case (n, _) => n == p.name}.values.toVector
+    players.collect {
+      case (n, px) if n != px.name => p
+    }.toVector
 
   def pick(f: Card => Boolean): Option[(Card, Game)] = {
     cards.pick(f).map {
