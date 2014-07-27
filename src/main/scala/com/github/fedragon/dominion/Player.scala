@@ -17,7 +17,7 @@ trait DefaultStrategy extends Strategy {
 
   override def whatToDiscard(cards: Deck): Deck =
     cards.draw.map {
-      case (card, _) => Deck(Vector(card))
+      case (card, _) => Vector(card)
     }.getOrElse(EmptyDeck)
 }
 
