@@ -83,9 +83,7 @@ case class Player(name: String,
 
   def discard(cards: Deck): Player = {
     cards.foldLeft(this) { (p, card) =>
-      hand.pick(_ === card).fold(p) {
-        case (_, newHand) => p.copy(hand = newHand, discarded = card +: discarded)
-      }
+      p.discard(card)
     }
   }
 
@@ -144,7 +142,7 @@ case class Player(name: String,
 
     // Cleanup Phase
 
-    // discard and draw next 5 cards
+    // discard hand and draw next 5 cards
     g2.update(p2.discardHand.drawsN(5))
   }
 
