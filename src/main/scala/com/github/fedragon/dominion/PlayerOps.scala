@@ -3,6 +3,8 @@ package com.github.fedragon.dominion
 import KingdomCards._
 import VictoryCards._
 
+import scalaz.Scalaz._
+
 trait PlayerOps {
 
   def playAction(a: Action)(p: Player)(g: Game): Game =
@@ -45,7 +47,7 @@ trait PlayerOps {
   private def pickTreasure(p: Player) = p.treasures.headOption
 
   private def treasureByCost(n: Coins) = (c: Card) => c match {
-    case Treasure(t) => t.cost == n
+    case Treasure(t) => t.cost === n
     case _ => false
   }
 }

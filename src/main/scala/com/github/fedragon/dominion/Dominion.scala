@@ -1,6 +1,7 @@
 package com.github.fedragon.dominion
 
 import Deck._
+import scalaz.Scalaz._
 
 case class Game(players: Map[String, Player], cards: Deck, trashed: Deck) {
 
@@ -11,7 +12,7 @@ case class Game(players: Map[String, Player], cards: Deck, trashed: Deck) {
 
   def playersExcept(p: Player): Vector[Player] =
     players.collect {
-      case (n, px) if n != px.name => p
+      case (n, px) if n =/= px.name => p
     }.toVector
 
   def pick(f: Card => Boolean): Option[(Card, Game)] = {
@@ -27,7 +28,7 @@ case class Game(players: Map[String, Player], cards: Deck, trashed: Deck) {
   def victims(p: Player): Vector[Player] = {
     players.filterNot {
       case (name, pn) =>
-        name == p.name || pn.hand.exists {
+        name === p.name || pn.hand.exists {
           case _: (Action with Reaction) => true
           case _ => false
         }

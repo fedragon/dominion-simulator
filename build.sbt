@@ -9,6 +9,7 @@ resolvers ++= Seq(
 )
 
 libraryDependencies ++= Seq(
+  "org.scalaz" %% "scalaz-core" % "provided",
   "com.github.julien-truffaut"  %%  "monocle-core"    % "0.4.0",
   "com.github.julien-truffaut"  %%  "monocle-generic" % "0.4.0",
   "com.github.julien-truffaut"  %%  "monocle-macro"   % "0.4.0",

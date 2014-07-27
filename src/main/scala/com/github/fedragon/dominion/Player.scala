@@ -1,6 +1,7 @@
 package com.github.fedragon.dominion
 
 import Deck._
+import scalaz.Scalaz._
 
 sealed trait Strategy {
   def whatToDiscard(cards: Deck): Deck
@@ -50,14 +51,14 @@ case class Player(name: String,
         val (_, cardsToDiscard) = treasures.foldLeft((diff, EmptyDeck)) { (state, treasure) =>
           val (remaining, cards) = state
 
-          if (remaining == Coins(0)) (Coins(0), cards)
+          if (remaining === Coins(0)) (Coins(0), cards)
           else (remaining - treasure.value, treasure +: cards)
         }
 
         discard(cardsToDiscard)
       }
 
-    val (p2, g2) = g.pick(_ == card).fold((p, g)) {
+    val (p2, g2) = g.pick(_ === card).fold((p, g)) {
       case (_, gx) =>
         val px = p.handLens.modify(card +: _).buysLens.modify(_ - 1)
         px -> gx.update(px)
@@ -75,14 +76,14 @@ case class Player(name: String,
     }
 
   def discard(card: Card): Player = {
-    hand.pick(_ == card).fold(this) {
+    hand.pick(_ === card).fold(this) {
       case (_, newHand) => copy(hand = newHand, discarded = card +: discarded)
     }
   }
 
   def discard(cards: Deck): Player = {
     cards.foldLeft(this) { (p, card) =>
-      hand.pick(_ == card).fold(p) {
+      hand.pick(_ === card).fold(p) {
         case (_, newHand) => p.copy(hand = newHand, discarded = card +: discarded)
       }
     }
@@ -152,7 +153,7 @@ case class Player(name: String,
   }
 
   private def validateAction(a: Action) =
-    if (actionsLens.get > 0) hand.find(_ == a)
+    if (actionsLens.get > 0) hand.find(_ === a)
     else None
 }
 

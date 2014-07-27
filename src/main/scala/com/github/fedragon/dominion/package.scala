@@ -1,5 +1,7 @@
 package com.github.fedragon
 
+import scalaz.Equal
+
 package object dominion {
 
   type Actions = Vector[Action]
@@ -9,5 +11,8 @@ package object dominion {
   type Treasures = Vector[Treasure]
 
   def withPlayer[T](p: Player)(f: Player => T) = f(p)
+
+  implicit val CardEqual: Equal[Card] = Equal.equalA
+  implicit val CoinsEqual: Equal[Coins] = Equal.equalA
 }
 
