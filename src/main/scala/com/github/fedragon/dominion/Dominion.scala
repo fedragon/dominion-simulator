@@ -7,8 +7,13 @@ case class Game(players: Map[String, Player], cards: Deck, trashed: Deck) {
 
   import Game._
   import monocle.syntax._
+  import VictoryCards.Province
 
   def find(p: Player): Player = players(p.name)
+
+  def finished: Boolean =
+  // TODO add other condition: 3 piles are empty
+    cards.find(_ === Province).isEmpty
 
   def pick(f: Card => Boolean): Option[(Card, Game)] = {
     cards.pick(f).map {
@@ -51,7 +56,7 @@ object Dominion {
 
     var game = Game(players, createStartingDeck(players.size), EmptyDeck)
 
-    while (!finished(game)) {
+    while (!game.finished) {
       game = players.values.foldLeft(game) { (g, player) =>
         player.playRound(g)
       }
@@ -69,10 +74,6 @@ object Dominion {
       Deck.fillWith(12)(Estate) ++
       Deck.fillWith(12)(Duchy) ++
       Deck.fillWith(12)(Province)
-
-  private def finished(game: Game): Boolean =
-  // TODO add other condition: 3 piles are empty
-    game.cards.find(_ === Province).isEmpty
 
   private def declareWinner(game: Game): Unit = {
     val ranking = game.players.map {
