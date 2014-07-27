@@ -12,7 +12,7 @@ case class Game(players: Map[String, Player], cards: Deck, trashed: Deck) {
 
   def playersExcept(p: Player): Vector[Player] =
     players.collect {
-      case (n, px) if n =/= px.name => p
+      case (n, px) if n =/= p.name => px
     }.toVector
 
   def pick(f: Card => Boolean): Option[(Card, Game)] = {
