@@ -7,29 +7,28 @@ sealed trait Strategy {
   def whatToDiscard(cards: Deck): Deck
 }
 
-case object DefaultStrategy extends Strategy {
+trait DefaultStrategy extends Strategy {
   // TODO improve
 
-  def nextAction(cards: Deck): Option[Action] =
+  override def nextAction(cards: Deck): Option[Action] =
     cards.collect {
       case Action(a) => a
     }.headOption
 
-  def whatToDiscard(cards: Deck): Deck =
+  override def whatToDiscard(cards: Deck): Deck =
     cards.draw.map {
       case (card, _) => Deck(Vector(card))
     }.getOrElse(EmptyDeck)
 }
 
 case class Player(name: String,
-                  strategy: Strategy = DefaultStrategy,
                   hand: Deck = EmptyDeck,
                   discarded: Deck = EmptyDeck,
                   deck: Deck,
-                  turn: Turn = Turn(actions = 1, buys = 1, coins = 0)) extends PlayerOps {
+                  turn: Turn = Turn(actions = 1, buys = 1, coins = 0)) extends PlayerOps with DefaultStrategy {
 
-  import monocle.syntax._
   import Player._
+  import monocle.syntax._
 
   val handLens = this |-> _hand
   val discardedLens = this |-> _discarded
@@ -76,7 +75,7 @@ case class Player(name: String,
   }
 
   private def validateAction(a: Action) =
-    if (turn.hasActions) hand.find(_ == a)
+    if (actionsLens.get > 0) hand.find(_ == a)
     else None
 }
 

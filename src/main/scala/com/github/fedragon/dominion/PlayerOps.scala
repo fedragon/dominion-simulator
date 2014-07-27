@@ -9,7 +9,7 @@ trait PlayerOps {
     a match {
       case Cellar =>
         // Discard N cards, draw N cards, +1 action
-        val (discarded, newHand) = p.hand.partition(c => p.strategy.whatToDiscard(p.hand).contains(c))
+        val (discarded, newHand) = p.hand.partition(c => p.whatToDiscard(p.hand).contains(c))
         val p2 = p.copy(hand = newHand, discarded = p.discarded ++ discarded)
 
         g.update(p2.drawsN(discarded.size).actionsLens modify (_ + 1))
