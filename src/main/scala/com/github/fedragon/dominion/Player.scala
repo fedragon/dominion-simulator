@@ -26,7 +26,7 @@ case class Player(name: String,
                   hand: Deck = EmptyDeck,
                   discarded: Deck = EmptyDeck,
                   deck: Deck,
-                  turn: Turn = Turn(actions = 1, buys = 1, coins = 0)) extends PlayerOps with DefaultStrategy {
+                  turn: Turn = Turn(actions = 1, buys = 1, coins = Coins(0))) extends PlayerOps with DefaultStrategy {
 
   import Player._
   import monocle.syntax._
@@ -85,13 +85,13 @@ object Player {
   val _turn = mkLens[Player, Turn]("turn")
   val _actions = mkLens[Turn, Int]("actions")
   val _buys = mkLens[Turn, Int]("buys")
-  val _coins = mkLens[Turn, Int]("coins")
+  val _coins = mkLens[Turn, Coins]("coins")
 
   def apply(name: String, hand: Deck, discarded: Deck, deck: Deck) =
     new Player(name = name, hand = hand, discarded = discarded, deck = deck)
 }
 
-case class Turn(actions: Int, buys: Int, coins: Int) {
+case class Turn(actions: Int, buys: Int, coins: Coins) {
 
   def +(that: Turn) =
     copy(

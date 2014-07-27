@@ -15,12 +15,12 @@ trait PlayerOps {
         g.update(p2.drawsN(discarded.size).actionsLens modify (_ + 1))
       case Market =>
         // Draw 1 card, +1 action, +1 buy, +1 coin
-        g.update(p.draws.turnLens modify (_ + Turn(1, 1, 1)))
+        g.update(p.draws.turnLens modify (_ + Turn(1, 1, Coins(1))))
       case Mine =>
         // Trash 1 treasure card and get one whose cost is +3
         val g3 = for {
           treasure <- pickTreasure(p)
-          (newTreasure, g2) <- g.trash(treasure).pick(treasureByCost(treasure.cost.value + 3))
+          (newTreasure, g2) <- g.trash(treasure).pick(treasureByCost(treasure.cost + Coins(3)))
         } yield {
           g2.update(withPlayer(p.discard(treasure))(_.handLens.modify(newTreasure +: _)))
         }
@@ -49,8 +49,8 @@ trait PlayerOps {
       case Treasure(t) => t
     }.headOption
 
-  private def treasureByCost(n: Int) = (c: Card) => c match {
-    case Treasure(t) => t.cost.value == n
+  private def treasureByCost(n: Coins) = (c: Card) => c match {
+    case Treasure(t) => t.cost == n
     case _ => false
   }
 }

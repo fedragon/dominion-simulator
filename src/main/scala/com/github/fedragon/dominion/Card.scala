@@ -7,7 +7,9 @@ sealed trait Card {
   override def toString = name
 }
 
-case class Coins(value: Int) extends AnyVal
+case class Coins(value: Int) extends AnyVal {
+  def +(that: Coins) = Coins(value + that.value)
+}
 
 sealed trait Modifiers
 
@@ -24,9 +26,7 @@ object Action {
   }
 }
 
-case class CardValue(value: Int) extends AnyVal
-
-abstract class Treasure(val name: String, val cost: Coins, val value: CardValue) extends Card
+abstract class Treasure(val name: String, val cost: Coins, val value: Coins) extends Card
 
 object Treasure {
   def unapply(c: Card): Option[Treasure] = c match {
@@ -34,6 +34,8 @@ object Treasure {
     case _ => None
   }
 }
+
+case class CardValue(value: Int) extends AnyVal
 
 abstract class Victory(val name: String, val cost: Coins, val value: CardValue) extends Card
 
