@@ -15,15 +15,7 @@ class DominionSpec extends UnitSpec {
     newDeck shouldBe 'empty
   }
 
-  "A player" should "be able to buy a card if he has enough coins" in {
-    val player = Player("Player", fillWith(7)(Copper), EmptyDeck, EmptyDeck)
-    player.canBuy(Estate) shouldBe true
-
-    val poor = Player("Poor", fillWith(1)(Copper), EmptyDeck, EmptyDeck)
-    poor.canBuy(Estate) shouldBe false
-  }
-
-  it should "be able to draw  from his deck" in {
+  it should "be able to draw cards from his deck" in {
     val stateOne = new Player("Player", deck = Deck(Copper, Estate)).draws
     stateOne.hand should contain(Copper)
     stateOne.deck should contain only Estate

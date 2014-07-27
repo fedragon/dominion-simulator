@@ -18,7 +18,7 @@ trait DefaultStrategy extends Strategy {
 
   override def whatToDiscard(cards: Deck): Deck =
     cards.draw.map {
-      case (card, _) => Vector(card)
+      case (card, _) => Deck(card)
     }.getOrElse(EmptyDeck)
 }
 
@@ -32,17 +32,11 @@ case class Player(name: String,
   import monocle.syntax._
 
   val handLens = this |-> _hand
-  val discardedLens = this |-> _discarded
   val deckLens = this |-> _deck
 
   val turnLens = this |-> _turn
   val actionsLens = turnLens |-> _actions
   val coinsLens = turnLens |-> _coins
-
-  def canBuy(that: Card): Boolean = {
-    val coins = hand.count { case (_: Treasure) => true; case _ => false}
-    coins >= that.cost.value
-  }
 
   def discard(card: Card): Player = {
     hand.pick(_ == card).fold(this) {

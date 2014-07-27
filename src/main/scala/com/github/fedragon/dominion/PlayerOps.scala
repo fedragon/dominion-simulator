@@ -35,7 +35,7 @@ trait PlayerOps {
       case Witch =>
         // Draw 2 cards, give one curse to all other players
         val g2 = g.update(p.drawsN(2))
-        val ps = g2.victims(p).map(pn => pn.deckLens.modify(Curse +: _))
+        val ps = g2.victims(p).map(_.deckLens.modify(Curse +: _))
 
         ps.foldLeft(g2)((gn, pn) => gn.update(pn))
       case other =>
