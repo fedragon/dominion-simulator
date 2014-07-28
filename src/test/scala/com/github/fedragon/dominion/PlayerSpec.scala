@@ -89,4 +89,10 @@ class PlayerSpec extends UnitSpec {
   }
 
   // TODO test buys when the preferred card is not available in the main deck
+
+  it should "be able to know all the victory cards in his hand, discarded pile or deck" in {
+    val subject = new Player("P", hand = Deck(Copper, Duchy, Silver), deck = Deck(Province), discarded = Deck(Estate))
+
+    subject.victories should contain only (Duchy, Estate, Province)
+  }
 }

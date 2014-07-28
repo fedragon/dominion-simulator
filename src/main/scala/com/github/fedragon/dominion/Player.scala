@@ -154,8 +154,12 @@ case class Player(name: String,
     case Treasure(t) => t
   }
 
-  def victories: Victories = handLens.get.collect {
-    case Victory(v) => v
+  def victories: Victories = {
+    def from(d: Deck) = deck.collect {
+      case Victory(v) => v
+    }
+
+    from(hand) ++ from(discarded) ++ from(deck)
   }
 
   private def validateAction(a: Action) =
