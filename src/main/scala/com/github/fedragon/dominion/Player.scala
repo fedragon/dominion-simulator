@@ -112,7 +112,7 @@ case class Player(name: String,
     }
   }
 
-  def playRound(game: Game): Game = {
+  def playTurn(game: Game): Game = {
 
     def playActions(p: Player, g: Game): (Player, Game) = {
       val actions = sortByPreference(p.handLens.get.collect {

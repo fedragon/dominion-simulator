@@ -58,7 +58,7 @@ object Dominion {
 
     while (!game.finished) {
       game = players.values.foldLeft(game) { (g, player) =>
-        player.playRound(g)
+        player.playTurn(g)
       }
     }
 
