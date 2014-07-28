@@ -7,7 +7,7 @@ import KingdomCards._
 
 class PlayerSpec extends UnitSpec {
 
-  "A player" should "be able to draw cards from his deck" in {
+  "A player" should "be able to draw one card from his deck" in {
     val pStateOne = new Player("P", deck = Deck(Copper, Estate)).draws
     pStateOne.hand should contain(Copper)
     pStateOne.deck should contain only Estate
@@ -17,7 +17,38 @@ class PlayerSpec extends UnitSpec {
     pStateTwo.hand should contain only(Copper, Estate)
   }
 
-  it should "be able to discard his hand" in {
+  it should "be able to draw N cards from his deck" in {
+    val pStateOne = new Player("P", deck = Deck(Copper, Estate)).drawsN(2)
+
+    pStateOne.deck shouldBe 'empty
+    pStateOne.hand should contain only (Copper, Estate)
+  }
+
+  it should "be able to know the total amount of coins he can spend" in {
+    val subject = new Player("P", hand = Deck(Copper, Silver), deck = EmptyDeck, turn = Turn(1, 1, Coins(2)))
+
+    subject.coins shouldBe Coins(5)
+  }
+
+  it should "be able to discard one card from his hand" in {
+    val pStateOne = new Player("P", hand = Deck(Copper), deck = EmptyDeck)
+
+    val pStateTwo = pStateOne.discard(Copper)
+
+    pStateTwo.hand shouldBe 'empty
+    pStateTwo.discarded should contain only Copper
+  }
+
+  it should "be able to discard N cards from his hand" in {
+    val pStateOne = new Player("P", hand = Deck(Copper, Silver), deck = EmptyDeck)
+
+    val pStateTwo = pStateOne.discard(Deck(Copper, Silver))
+
+    pStateTwo.hand shouldBe 'empty
+    pStateTwo.discarded should contain only(Copper, Silver)
+  }
+
+  it should "be able to discard his whole hand" in {
     val pStateOne = new Player("P", deck = Deck(Copper, Estate)).draws
     pStateOne.hand should contain(Copper)
 
@@ -28,8 +59,9 @@ class PlayerSpec extends UnitSpec {
 
   it should "play an action, if there is at least one such action in his hand" in {
     val subject = Player("P", hand = Deck(Smithy), deck = Deck(Copper, Estate, Copper))
+    val game = Game(Map(subject.name -> subject), EmptyDeck, EmptyDeck)
 
-    val (player, _) = subject.plays(Smithy)(Game(Map(subject.name -> subject), EmptyDeck, EmptyDeck))
+    val (player, _) = subject.plays(Smithy)(game)
 
     player.hand.size shouldBe 3
     player.deck shouldBe 'empty
@@ -37,8 +69,9 @@ class PlayerSpec extends UnitSpec {
 
   it should "not play an action, if it is not in his hand" in {
     val subject = new Player("P", deck = Deck(Copper, Estate))
+    val game = Game(Map(subject.name -> subject), EmptyDeck, EmptyDeck)
 
-    val (player, _) = subject.plays(Smithy)(Game(Map(subject.name -> subject), EmptyDeck, EmptyDeck))
+    val (player, _) = subject.plays(Smithy)(game)
 
     player shouldBe subject
   }
@@ -47,7 +80,7 @@ class PlayerSpec extends UnitSpec {
     val subject = Player("P", hand = Deck(Smithy), deck = Deck(Copper, Estate, Copper))
     val game = Game(Map(subject.name -> subject), EmptyDeck, EmptyDeck)
 
-    // Smithy does not affect `game` so there's no problem reusing the same instance
+    // Smithy does not affect `game` so there's no problem reusing the same instance of game
     val (pStateOne, _) = subject.plays(Smithy)(game)
     val (pStateTwo, _) = pStateOne.plays(Smithy)(game)
 
@@ -89,6 +122,12 @@ class PlayerSpec extends UnitSpec {
   }
 
   // TODO test buys when the preferred card is not available in the main deck
+
+  it should "be able to know all the treasure cards in his hand" in {
+    val subject = new Player("P", hand = Deck(Copper, Moat, Silver, Smithy), deck = EmptyDeck)
+
+    subject.treasures should contain only (Copper, Silver)
+  }
 
   it should "be able to know all the victory cards in his hand, discarded pile or deck" in {
     val subject = new Player("P", hand = Deck(Copper, Duchy, Silver), deck = Deck(Province), discarded = Deck(Estate))
