@@ -36,6 +36,18 @@ trait PlayerOps {
       case Smithy =>
         // Draw 3 cards
         g.update(p.drawsN(3))
+      case Spy =>
+        // Draw 1 card, +1 action, every player (attacker included) reveals the top card of his deck and the attacker
+        // decides whether to discard it or not: if not discarded, the card goes back on top of the deck.
+
+        // Draw 1 card, +1 action
+        val attacker = p.draws.actionsLens.modify(_ + 1).reveals(p.shouldIDiscard)
+        val g2 = g.update(attacker)
+
+        // Reveal every victim's top card, maybe discard it
+        val ps = g2.victims(p).map(_.reveals(attacker.shouldVictimDiscard))
+
+        ps.foldLeft(g2)((gn, pn) => gn.update(pn))
       case Witch =>
         // Draw 2 cards, give one curse to all other players
         val g2 = g.update(p.drawsN(2))

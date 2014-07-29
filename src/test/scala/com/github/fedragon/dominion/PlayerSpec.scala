@@ -1,9 +1,9 @@
 package com.github.fedragon.dominion
 
 import Deck._
+import KingdomCards._
 import TreasureCards._
 import VictoryCards._
-import KingdomCards._
 
 class PlayerSpec extends UnitSpec {
 
@@ -23,7 +23,33 @@ class PlayerSpec extends UnitSpec {
     val pStateOne = new Player("P", deck = Deck(Copper, Estate)).drawsN(2)
 
     pStateOne.deck shouldBe 'empty
-    pStateOne.hand should contain only (Copper, Estate)
+    pStateOne.hand should contain only(Copper, Estate)
+  }
+
+  it should "be able to reveal and discard the top card in his deck" in {
+    val subject = new Player("P", deck = Deck(Gold, Estate))
+    val pStateOne = subject.reveals(_ => false)
+
+    pStateOne.deck should contain only(Gold, Estate)
+    pStateOne.discarded shouldBe 'empty
+
+    val pStateTwo = subject.reveals(_ => true)
+
+    pStateTwo.deck.loneElement shouldBe Estate
+    pStateTwo.discarded should contain(Gold)
+  }
+
+  it should "be able to reveal the top card in his deck even when all his cards are discarded" in {
+    val subject = new Player("P", deck = EmptyDeck, discarded = Deck(Gold, Estate))
+    val pStateOne = subject.reveals(_ => false)
+
+    pStateOne.deck should contain theSameElementsAs Deck(Gold, Estate)
+    pStateOne.discarded shouldBe 'empty
+
+    val pStateTwo = subject.reveals(_ => true)
+
+    pStateTwo.deck should contain only Estate
+    pStateTwo.discarded should contain only Gold
   }
 
   it should "be able to know the total amount of coins he can spend" in {
@@ -128,12 +154,12 @@ class PlayerSpec extends UnitSpec {
   it should "be able to know all the treasure cards in his hand" in {
     val subject = new Player("P", hand = Deck(Copper, Moat, Silver, Smithy), deck = EmptyDeck)
 
-    subject.treasures should contain only (Copper, Silver)
+    subject.treasures should contain only(Copper, Silver)
   }
 
   it should "be able to know all the victory cards in his hand, discarded pile or deck" in {
     val subject = new Player("P", hand = Deck(Copper, Duchy, Silver), deck = Deck(Province), discarded = Deck(Estate))
 
-    subject.victories should contain only (Duchy, Estate, Province)
+    subject.victories should contain only(Duchy, Estate, Province)
   }
 }

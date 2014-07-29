@@ -4,7 +4,13 @@ import Deck._
 import scalaz.Scalaz._
 
 sealed trait Strategy {
+  // Militia specific action
   def whatToDiscard(cards: Deck): Deck
+
+  // Spy specific actions
+  // TODO
+  def shouldIDiscard(card: Card) = false
+  def shouldVictimDiscard(card: Card) = true
 }
 
 trait DefaultStrategy extends Strategy {
@@ -32,6 +38,7 @@ case class Player(name: String,
 
   val handLens = this |-> _hand
   val deckLens = this |-> _deck
+  val discardedLens = this |-> _discarded
 
   val turnLens = this |-> _turn
   val actionsLens = turnLens |-> _actions
@@ -77,7 +84,7 @@ case class Player(name: String,
 
   def discard(card: Card): Player = {
     hand.pick(_ === card).fold(this) {
-      case (_, newHand) => copy(hand = newHand, discarded = card +: discarded)
+      case (_, newHand) => handLens.set(newHand).discardedLens.modify(card +: _)
     }
   }
 
@@ -87,16 +94,12 @@ case class Player(name: String,
     }
   }
 
-  def discardHand: Player = copy(hand = EmptyDeck, discarded = discarded ++ hand)
+  def discardHand: Player = handLens.set(EmptyDeck).discardedLens.modify(_ ++ hand)
 
-  def draws: Player =
-    deck.draw match {
-      case Some((card, newDeck)) =>
-        copy(hand = card +: hand, deck = newDeck)
-      case None =>
-        val (card, newDeck) = (deck ++ discarded).shuffle.draw.get
-        copy(hand = card +: hand, discarded = EmptyDeck, deck = newDeck)
-    }
+  def draws: Player = {
+    val (card, state) = revealFromDeck
+    state.handLens.modify(card +: _)
+  }
 
   def drawsN(n: Int): Player = (0 until n).foldLeft(this)((p, _) => p.draws)
 
@@ -150,6 +153,14 @@ case class Player(name: String,
     g2.update(p2.discardHand.drawsN(5))
   }
 
+  def reveals(discard: Card => Boolean) = {
+    val (card, state) = revealFromDeck
+
+    if (discard(card))
+      state.discardedLens.modify(card +: _)
+    else state.deckLens.modify(card +: _)
+  }
+
   def treasures: Treasures = handLens.get.collect {
     case Treasure(t) => t
   }
@@ -161,6 +172,15 @@ case class Player(name: String,
 
     from(hand) ++ from(discarded) ++ from(deck)
   }
+
+  private def revealFromDeck: (Card, Player) =
+    deck.draw match {
+      case Some((card, newDeck)) =>
+        (card, deckLens.set(newDeck))
+      case None =>
+        val (card, newDeck) = (deck ++ discarded).shuffle.draw.get
+        (card, discardedLens.set(EmptyDeck).deckLens.set(newDeck))
+    }
 
   private def validateAction(a: Action) =
     if (actionsLens.get > 0) hand.find(_ === a)

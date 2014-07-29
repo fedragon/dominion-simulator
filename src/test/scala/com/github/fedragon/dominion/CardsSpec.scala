@@ -76,6 +76,47 @@ class CardsSpec extends UnitSpec {
     stateOne.deck shouldBe 'empty
   }
 
+  "Spy" should "translate to: +1 card, +1 action, every player reveals his top cards and maybe discards it, the attacker decides" in {
+    val subject = Player("P", hand = Deck(Spy), deck = Deck(Estate, Copper))
+    val other = Player("O", hand = EmptyDeck, deck = Deck(Copper, Smithy))
+    val another = Player("A", hand = EmptyDeck, deck = Deck(Mine, Province))
+    val game = emptyGame.copy(players = Map(subject.name -> subject, other.name -> other, another.name -> another))
+
+    val (stateOne, gameOne) = subject.plays(Spy)(game)
+
+    stateOne.hand.size shouldBe 1
+    stateOne.turn shouldBe Turn(actions = 1, buys = 1, coins = Coins(0))
+    stateOne.deck.head shouldBe Copper
+
+    gameOne.find(other).deck.head shouldBe Smithy
+    gameOne.find(other).discarded.head shouldBe Copper
+
+    gameOne.find(another).deck.head shouldBe Mine
+    gameOne.find(another).discarded shouldBe 'empty
+  }
+
+  it should "make sure that the victim puts the revealed card back on top of his deck, if the attacker says so" in {
+    val subject = Player("P", hand = Deck(Spy), deck = Deck(Estate, Copper))
+    val other = Player("O", hand = EmptyDeck, deck = Deck(Province, Gold))
+    val game = emptyGame.copy(players = Map(subject.name -> subject, other.name -> other))
+
+    val (_, gameOne) = subject.plays(Spy)(game)
+
+    gameOne.find(other).deck.head shouldBe Province
+    gameOne.find(other).discarded shouldBe 'empty
+  }
+
+  it should "make sure that the victim shuffles his deck, if he does not have any card left" in {
+    val subject = Player("P", hand = Deck(Spy), deck = Deck(Estate, Copper))
+    val other = Player("O", hand = EmptyDeck, deck = EmptyDeck, discarded = Deck(Province))
+    val game = emptyGame.copy(players = Map(subject.name -> subject, other.name -> other))
+
+    val (_, gameOne) = subject.plays(Spy)(game)
+
+    gameOne.find(other).deck.head shouldBe Province
+    gameOne.find(other).discarded shouldBe 'empty
+  }
+
   "Witch" should "translate to: +2 and +1 curse to all the other players" in {
     val subject = Player("P", hand = Deck(Witch), deck = Deck(Copper, Copper))
     val other = Player("O", hand = EmptyDeck, deck = EmptyDeck)
