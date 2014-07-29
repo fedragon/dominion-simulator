@@ -1,5 +1,6 @@
 package com.github.fedragon.dominion
 
+import TreasureCards.{Gold, Silver}
 import VictoryCards.{Duchy, Estate, Province}
 
 trait CellarStrategy {
@@ -11,7 +12,11 @@ trait SpyStrategy {
   def shouldSpyVictimDiscard(card: Card): Boolean
 }
 
-trait Strategy extends CellarStrategy with SpyStrategy
+trait ThiefStrategy {
+  def holderGainsRevealedTreasure(card: Card): Boolean
+}
+
+trait Strategy extends CellarStrategy with SpyStrategy with ThiefStrategy
 
 class DefaultStrategy extends Strategy {
   // TODO improve
@@ -21,5 +26,7 @@ class DefaultStrategy extends Strategy {
 
   def shouldSpyHolderDiscard(card: Card) = false
   def shouldSpyVictimDiscard(card: Card) = true
+
+  def holderGainsRevealedTreasure(card: Card) = card == Silver || card == Gold
 }
 

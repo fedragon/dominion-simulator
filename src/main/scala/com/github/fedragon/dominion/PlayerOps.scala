@@ -50,6 +50,54 @@ trait PlayerOps {
         val ps = g2.victims(p).map(_.reveals(attacker.strategy.shouldSpyVictimDiscard))
 
         ps.foldLeft(g2)((gn, pn) => gn.update(pn))
+      case Thief =>
+        // Any other player reveals the top 2 cards from his deck: if they revealed any Treasure card, they trash one of
+        // them that you choose. You may gain any or all of these trashed cards. They discard the other revealed cards.
+
+        val revealedCards = g.victims(p).map(_.revealsN(2))
+
+        // TODO too big: split into methods and reorganize code
+        revealedCards.foldLeft(g) {
+          case (game, rv) =>
+            val (revealed, victim) = rv
+
+            val treasures = revealed.onlyTreasures
+
+            val gn = if (treasures.isEmpty) {
+              // no treasures: discard both revealed cards
+              val victim2 = revealed.foldLeft(victim)((state, card) => state.discardedLens.modify(card +: _))
+              game.update(victim2)
+            } else {
+              val (gainable, discardable) = treasures.partition(p.strategy.holderGainsRevealedTreasure)
+
+              (gainable.toList, discardable.toList) match {
+                case (hd :: tl, Nil) =>
+                  val updatedAttacker = p.discardedLens.modify(hd +: _)
+
+                  val updatedVictim =
+                    if (tl.nonEmpty)
+                      victim.discardedLens.modify(tl.head +: _)
+                    else victim
+
+                  game.update(updatedAttacker).update(updatedVictim)
+                case (Nil, hd :: tl) =>
+                  val g2 = game.trash(hd)
+
+                  if (tl.nonEmpty)
+                    g2.update(victim.discardedLens.modify(tl.head +: _))
+                  else g2
+                case (gain :: Nil, disc :: Nil) =>
+                  val updatedAttacker = p.discardedLens.modify(gain +: _)
+                  val updatedVictim = victim.discardedLens.modify(disc +: _)
+
+                  game.update(updatedAttacker).update(updatedVictim)
+                case _ => throw new IllegalStateException("How could this ever happen?!")
+              }
+            }
+
+            // Discard any revealed non-treasure card
+            revealed.diff(treasures).foldLeft(gn)((state, card) => state.update(victim.discardedLens.modify(card +: _)))
+        }
       case Witch =>
         // Draw 2 cards, give one curse to all other players
         val g2 = g.update(p.drawsN(2))

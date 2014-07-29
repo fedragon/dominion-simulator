@@ -100,6 +100,26 @@ class CardsSpec extends UnitSpec {
     gameOne.find(another).discarded shouldBe 'empty
   }
 
+  "Thief" should "translate to: every victim reveals 2 cards from his deck and attacker can gain or trash one of them (the remaining are discarded)" in {
+    val subject = new Player("P", hand = Deck(Thief), deck = EmptyDeck)
+    val other = Player("O", hand = EmptyDeck, deck = Deck(Silver, Smithy))
+    val another = Player("A", hand = EmptyDeck, deck = EmptyDeck, discarded = Deck(Copper, Copper))
+    val game = emptyGame.copy(players = Map(subject.name -> subject, other.name -> other, another.name -> another))
+
+    val (stateOne, gameOne) = subject.plays(Thief)(game)
+
+    stateOne.hand shouldBe 'empty
+    stateOne.discarded should contain theSameElementsAs Deck(Thief, Silver)
+
+    gameOne.find(other).deck shouldBe 'empty
+    gameOne.find(other).discarded.loneElement shouldBe Smithy
+
+    gameOne.find(another).deck shouldBe 'empty
+    gameOne.find(another).discarded should contain theSameElementsAs Deck(Copper)
+
+    gameOne.trashed should contain theSameElementsAs Deck(Copper)
+  }
+
   "Witch" should "translate to: +2 and +1 curse to all the other players" in {
     val subject = Player("P", hand = Deck(Witch), deck = Deck(Copper, Copper))
     val other = Player("O", hand = EmptyDeck, deck = EmptyDeck)
