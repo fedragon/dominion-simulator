@@ -85,7 +85,7 @@ case class Player(name: String,
       // discard this action and update the turn, then play the action
       withPlayer(discard(a)) { p =>
         withPlayer(p.actionsLens.modify(_ - 1)) { p2 =>
-          val game = playAction(a)(p2)(g)
+          val game = p2.playAction(a)(g)
           (game.find(p2), game)
         }
       }

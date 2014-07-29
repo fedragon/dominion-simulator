@@ -6,8 +6,9 @@ import VictoryCards._
 import scalaz.Scalaz._
 
 trait PlayerOps {
+  p: Player =>
 
-  def playAction(a: Action)(p: Player)(g: Game): Game =
+  def playAction(a: Action)(g: Game): Game =
     a match {
       case Cellar =>
         // Discard N cards, draw N cards, +1 action
@@ -41,11 +42,11 @@ trait PlayerOps {
         // decides whether to discard it or not: if not discarded, the card goes back on top of the deck.
 
         // Draw 1 card, +1 action
-        val attacker = p.draws.actionsLens.modify(_ + 1).reveals(p.strategy.shouldAttackerDiscard)
+        val attacker = p.draws.actionsLens.modify(_ + 1).reveals(p.strategy.shouldSpyHolderDiscard)
         val g2 = g.update(attacker)
 
         // Reveal every victim's top card, maybe discard it
-        val ps = g2.victims(p).map(_.reveals(attacker.strategy.shouldVictimDiscard))
+        val ps = g2.victims(p).map(_.reveals(attacker.strategy.shouldSpyVictimDiscard))
 
         ps.foldLeft(g2)((gn, pn) => gn.update(pn))
       case Witch =>
