@@ -95,9 +95,10 @@ case class Player(name: String,
   def playTurn(game: Game): Game = {
 
     def playActions(p: Player, g: Game): (Player, Game) = {
-      val actions = strategy.sortByPreference(p.handLens.get.collect {
+      // TODO should be sorted according to the strategy
+      val actions = p.handLens.get.collect {
         case Action(a) => a
-      })
+      }
 
       actions.foldLeft((p, g)) { (state, action) =>
         val (px, gx) = state

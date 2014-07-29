@@ -41,7 +41,7 @@ trait PlayerOps {
         // decides whether to discard it or not: if not discarded, the card goes back on top of the deck.
 
         // Draw 1 card, +1 action
-        val attacker = p.draws.actionsLens.modify(_ + 1).reveals(p.strategy.shouldIDiscard)
+        val attacker = p.draws.actionsLens.modify(_ + 1).reveals(p.strategy.shouldAttackerDiscard)
         val g2 = g.update(attacker)
 
         // Reveal every victim's top card, maybe discard it
