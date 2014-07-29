@@ -7,6 +7,8 @@ import KingdomCards._
 
 class PlayerSpec extends UnitSpec {
 
+  val emptyGame = Game(Map.empty, EmptyDeck, EmptyDeck)
+
   "A player" should "be able to draw one card from his deck" in {
     val pStateOne = new Player("P", deck = Deck(Copper, Estate)).draws
     pStateOne.hand should contain(Copper)
@@ -59,7 +61,7 @@ class PlayerSpec extends UnitSpec {
 
   it should "play an action, if there is at least one such action in his hand" in {
     val subject = Player("P", hand = Deck(Smithy), deck = Deck(Copper, Estate, Copper))
-    val game = Game(Map(subject.name -> subject), EmptyDeck, EmptyDeck)
+    val game = emptyGame.copy(players = Map(subject.name -> subject))
 
     val (player, _) = subject.plays(Smithy)(game)
 
@@ -69,7 +71,7 @@ class PlayerSpec extends UnitSpec {
 
   it should "not play an action, if it is not in his hand" in {
     val subject = new Player("P", deck = Deck(Copper, Estate))
-    val game = Game(Map(subject.name -> subject), EmptyDeck, EmptyDeck)
+    val game = emptyGame.copy(players = Map(subject.name -> subject))
 
     val (player, _) = subject.plays(Smithy)(game)
 
@@ -78,7 +80,7 @@ class PlayerSpec extends UnitSpec {
 
   it should "not be allowed to play more actions than he can" in {
     val subject = Player("P", hand = Deck(Smithy), deck = Deck(Copper, Estate, Copper))
-    val game = Game(Map(subject.name -> subject), EmptyDeck, EmptyDeck)
+    val game = emptyGame.copy(players = Map(subject.name -> subject))
 
     // Smithy does not affect `game` so there's no problem reusing the same instance of game
     val (pStateOne, _) = subject.plays(Smithy)(game)
@@ -90,7 +92,7 @@ class PlayerSpec extends UnitSpec {
 
   it should "not be able to buy a card, if he does not have enough coins" in {
     val subject = Player("P", hand = Deck(Copper), deck = EmptyDeck)
-    val game = Game(Map(subject.name -> subject), Deck(Moat), EmptyDeck)
+    val game = emptyGame.copy(players = Map(subject.name -> subject), cards = Deck(Moat))
 
     val (pStateOne, gStateOne) = subject.buys(Moat)(game)
 
@@ -101,7 +103,7 @@ class PlayerSpec extends UnitSpec {
 
   it should "be able to buy a card, if he has enough coins in his hand" in {
     val subject = Player("P", hand = Deck(Silver), deck = EmptyDeck)
-    val game = Game(Map(subject.name -> subject), Deck(Moat), EmptyDeck)
+    val game = emptyGame.copy(players = Map(subject.name -> subject), cards = Deck(Moat))
 
     val (pStateOne, gStateOne) = subject.buys(Moat)(game)
 
@@ -112,7 +114,7 @@ class PlayerSpec extends UnitSpec {
 
   it should "be able to buy a card, if he has enough coins including extra coins" in {
     val subject = Player("P", hand = Deck(Copper), deck = EmptyDeck, turn = Turn(0, 1, Coins(1)))
-    val game = Game(Map(subject.name -> subject), Deck(Moat), EmptyDeck)
+    val game = emptyGame.copy(players = Map(subject.name -> subject), cards = Deck(Moat))
 
     val (pStateOne, gStateOne) = subject.buys(Moat)(game)
 

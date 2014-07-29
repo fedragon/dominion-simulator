@@ -1,19 +1,21 @@
 package com.github.fedragon.dominion
 
 import Deck._
+
 import scalaz.Scalaz._
 
 case class Game(players: Map[String, Player], cards: Deck, trashed: Deck) {
 
   import Game._
-  import monocle.syntax._
   import VictoryCards.Province
+  import monocle.syntax._
+
+  private val supplyPiles = cards.toSet
+
+  def ended(startingSet: Set[Card]): Boolean =
+    cards.find(_ === Province).isEmpty || startingSet.size - supplyPiles.size == 3
 
   def find(p: Player): Player = players(p.name)
-
-  def finished: Boolean =
-  // TODO add other condition: 3 piles are empty
-    cards.find(_ === Province).isEmpty
 
   def pick(f: Card => Boolean): Option[(Card, Game)] = {
     cards.pick(f).map {
@@ -54,9 +56,10 @@ object Dominion {
   def playGame(playerNames: Vector[String]) = {
     val players = playerNames.map(createPlayer).toMap
 
-    var game = Game(players, createStartingDeck(players.size), EmptyDeck)
+    val (deck, startingSet): (Deck, Set[Card]) = createStartingDeck(players.size)
+    var game = Game(players, deck, EmptyDeck)
 
-    while (!game.finished) {
+    while (!game.ended(startingSet)) {
       game = players.values.foldLeft(game) { (g, player) =>
         player.playTurn(g)
       }
@@ -68,12 +71,15 @@ object Dominion {
   private def createPlayer(name: String) =
     name -> Player(name, deck = Deck.fillWith(7)(Copper) ++ Deck.fillWith(3)(Estate))
 
-  private def createStartingDeck(nOfPlayers: Int): Deck =
-  // TODO add more cards
-    Deck.fillWith(60 - nOfPlayers * 7)(Copper) ++
+  private def createStartingDeck(nOfPlayers: Int): (Deck, Set[Card]) = {
+    // TODO add more cards
+    val deck = Deck.fillWith(60 - nOfPlayers * 7)(Copper) ++
       Deck.fillWith(12)(Estate) ++
       Deck.fillWith(12)(Duchy) ++
       Deck.fillWith(12)(Province)
+
+    (deck, deck.toSet)
+  }
 
   private def declareWinner(game: Game): Unit = {
     val ranking = game.players.map {

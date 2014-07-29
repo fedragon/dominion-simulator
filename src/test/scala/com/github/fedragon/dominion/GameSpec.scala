@@ -1,14 +1,27 @@
 package com.github.fedragon.dominion
 
 import Deck._
-import KingdomCards.{Moat, Witch}
+import com.github.fedragon.dominion.KingdomCards.{Market, Moat, Witch}
+import com.github.fedragon.dominion.TreasureCards.Copper
+import com.github.fedragon.dominion.VictoryCards.{Duchy, Province}
 
 class GameSpec extends UnitSpec {
 
   "A game" should "be finished when all Provinces are gone" in {
     val subject = Game(Map.empty[String, Player], EmptyDeck, EmptyDeck)
 
-    subject.finished shouldBe true
+    subject.ended(Set.empty) shouldBe true
+  }
+
+  "A game" should "be finished when any 3 supply piles are empty" in {
+    val subject = Game(Map.empty[String, Player], Deck(Copper, Moat, Market, Province), EmptyDeck)
+    val startingSet: Set[Card] = Set(Copper, Duchy, Market, Moat, Province, Witch)
+
+    subject.ended(startingSet) shouldBe false
+
+    val stateOne = subject.copy(cards = Deck(Copper, Moat))
+
+    stateOne.ended(startingSet) shouldBe true
   }
 
   it should "find a player" in {
