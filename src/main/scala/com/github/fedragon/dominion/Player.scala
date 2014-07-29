@@ -32,7 +32,7 @@ case class Player(name: String,
         extraCoinsLens.modify(_ - cost)
       else {
         val diff = cost - extraCoinsLens.get
-        val (_, cardsToDiscard) = treasures.foldLeft((diff, EmptyDeck)) { (state, treasure) =>
+        val (_, cardsToDiscard) = hand.onlyTreasures.foldLeft((diff, EmptyDeck)) { (state, treasure) =>
           val (remaining, cards) = state
 
           if (remaining === Coins(0)) (Coins(0), cards)
@@ -139,17 +139,17 @@ case class Player(name: String,
     else state.deckLens.modify(card +: _)
   }
 
-  def treasures: Treasures = handLens.get.collect {
-    case Treasure(t) => t
-  }
-
-  def victories: Victories = {
-    def from(d: Deck) = deck.collect {
-      case Victory(v) => v
+  def revealsN(n: Int): (Deck, Player) = {
+    (0 until n).foldLeft((EmptyDeck, this)) {
+      (state, _) =>
+        val (stash, p) = state
+        val (card, p2) = p.revealFromDeck
+        (card +: stash, p2)
     }
-
-    from(hand) ++ from(discarded) ++ from(deck)
   }
+
+  def allVictories: Victories =
+    hand.onlyVictories ++ discarded.onlyVictories ++ deck.onlyVictories
 
   private def revealFromDeck: (Card, Player) =
     deck.draw match {

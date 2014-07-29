@@ -1,5 +1,6 @@
 package com.github.fedragon.dominion
 
+import Deck._
 import KingdomCards._
 import VictoryCards._
 
@@ -59,7 +60,7 @@ trait PlayerOps {
         throw new UnsupportedOperationException(s"Action not supported: $other")
     }
 
-  private def pickTreasure(p: Player) = p.treasures.headOption
+  private def pickTreasure(p: Player) = p.hand.onlyTreasures.headOption
 
   private def treasureByCost(n: Coins) = (c: Card) => c match {
     case Treasure(t) => t.cost === n

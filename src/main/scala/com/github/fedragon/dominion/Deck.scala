@@ -22,6 +22,15 @@ object Deck {
         Some(cards(index) -> cards.patch(index, Vector.empty[Card], 1))
       else None
     }
+
+    def onlyTreasures: Treasures = cards.collect {
+      case Treasure(t) => t
+    }
+
+    def onlyVictories: Victories = cards.collect {
+      case Victory(v) => v
+    }
   }
+
 }
 

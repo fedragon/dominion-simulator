@@ -157,12 +157,12 @@ class PlayerSpec extends UnitSpec {
   it should "be able to know all the treasure cards in his hand" in {
     val subject = new Player("P", hand = Deck(Copper, Moat, Silver, Smithy), deck = EmptyDeck)
 
-    subject.treasures should contain only(Copper, Silver)
+    subject.hand.onlyTreasures should contain only(Copper, Silver)
   }
 
   it should "be able to know all the victory cards in his hand, discarded pile or deck" in {
     val subject = new Player("P", hand = Deck(Copper, Duchy, Silver), deck = Deck(Province), discarded = Deck(Estate))
 
-    subject.victories should contain only(Duchy, Estate, Province)
+    subject.allVictories should contain only(Duchy, Estate, Province)
   }
 }

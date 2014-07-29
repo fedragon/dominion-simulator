@@ -77,7 +77,7 @@ object Dominion {
   private def declareWinner(game: Game): Unit = {
     val ranking = game.players.map {
       case (name, player) =>
-        name -> player.victories.foldLeft(CardValue(0))(_ + _.value)
+        name -> player.allVictories.foldLeft(CardValue(0))(_ + _.value)
     }.toSeq.sortWith(_._2 > _._2)
 
     ranking.foreach(println)
