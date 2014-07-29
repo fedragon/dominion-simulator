@@ -1,19 +1,19 @@
 package com.github.fedragon.dominion
 
 import Deck._
-import com.github.fedragon.dominion.KingdomCards.{Market, Moat, Witch}
-import com.github.fedragon.dominion.TreasureCards.Copper
-import com.github.fedragon.dominion.VictoryCards.Province
+import KingdomCards.{Market, Moat, Witch}
+import TreasureCards.Copper
+import VictoryCards.Province
 
 class GameSpec extends UnitSpec {
 
-  "A game" should "be finished when all Provinces are gone" in {
+  "A game" should "end when all Provinces are gone" in {
     val subject = Game(Map.empty[String, Player], Map(Copper -> 1, Moat -> 1), EmptyDeck)
 
     subject.ended shouldBe true
   }
 
-  "A game" should "be finished when any 3 supply piles are empty" in {
+  it should "end when any 3 supply piles are empty" in {
     val subject = Game(Map.empty[String, Player], Map(Copper -> 1, Moat -> 1, Market -> 1, Province -> 1), EmptyDeck)
 
     subject.ended shouldBe false
@@ -30,7 +30,7 @@ class GameSpec extends UnitSpec {
     subject.find(p1) shouldBe p1
   }
 
-  it should "pick a card, if still available" in {
+  it should "allow a player to pick a card from a supply pile, if still available" in {
     val subject = Game(Map.empty[String, Player], Map(Moat -> 1), EmptyDeck)
 
     val result = subject.pick(_ === Moat)
@@ -49,7 +49,7 @@ class GameSpec extends UnitSpec {
     subject.trash(Moat).trashed.loneElement shouldBe Moat
   }
 
-  it should "update a player" in {
+  it should "update the state of a player" in {
     val p1 = Player("P1", hand = Deck(Witch), deck = EmptyDeck)
     val subject = Game(Map(p1.name -> p1), Map.empty, EmptyDeck)
 

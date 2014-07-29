@@ -1,11 +1,11 @@
 package com.github.fedragon.dominion
 
-class CardsSpec extends UnitSpec {
+import Deck._
+import KingdomCards._
+import TreasureCards._
+import VictoryCards._
 
-  import Deck._
-  import KingdomCards._
-  import TreasureCards._
-  import VictoryCards._
+class CardsSpec extends UnitSpec {
 
   val emptyGame = Game(Map.empty, Map.empty, EmptyDeck)
 

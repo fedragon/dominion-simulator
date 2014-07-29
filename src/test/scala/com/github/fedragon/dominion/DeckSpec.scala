@@ -1,7 +1,7 @@
 package com.github.fedragon.dominion
 
 import Deck._
-import TreasureCards._
+import TreasureCards.Copper
 
 class DeckSpec extends UnitSpec {
 
