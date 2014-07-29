@@ -7,7 +7,7 @@ class CardsSpec extends UnitSpec {
   import TreasureCards._
   import VictoryCards._
 
-  val emptyGame = Game(Map.empty, EmptyDeck, EmptyDeck)
+  val emptyGame = Game(Map.empty, Map.empty, EmptyDeck)
 
   "Cellar" should "translate to: +1 action, discard N cards and draw N cards" in {
     val subject = Player("P", hand = Deck(Cellar, Market), deck = Deck(Copper))
@@ -34,7 +34,7 @@ class CardsSpec extends UnitSpec {
 
   "Mine" should "translate to: trash 1 treasure card and get 1 whose cost is +3" in {
     val subject = Player("P", hand = Deck(Mine, Copper), deck = EmptyDeck)
-    val game = emptyGame.copy(players = Map(subject.name -> subject), cards = Deck(Silver))
+    val game = emptyGame.copy(players = Map(subject.name -> subject), supplyPiles = Map(Silver -> 1))
 
     val (stateOne, updatedGame) = subject.plays(Mine)(game)
 
@@ -80,7 +80,7 @@ class CardsSpec extends UnitSpec {
     val subject = Player("P", hand = Deck(Witch), deck = Deck(Copper, Copper))
     val other = Player("O", hand = EmptyDeck, deck = EmptyDeck)
     val another = Player("A", hand = EmptyDeck, deck = EmptyDeck)
-    val game = emptyGame.copy(players = Map(subject.name -> subject, other.name -> other, another.name -> another), cards = Deck(Curse))
+    val game = emptyGame.copy(players = Map(subject.name -> subject, other.name -> other, another.name -> another), supplyPiles = Map(Curse -> 2))
 
     val (stateOne, gameOne) = subject.plays(Witch)(game)
 

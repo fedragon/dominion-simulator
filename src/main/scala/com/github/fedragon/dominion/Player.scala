@@ -129,7 +129,7 @@ case class Player(name: String,
 
     def playBuys(p: Player, g: Game): (Player, Game) = {
       // TODO should be decided by the strategy
-      val preferredCards = g.cards.groupBy(_.name).map(_._2.head)
+      val preferredCards = g.supplyPiles.keys
 
       preferredCards.foldLeft((p, g)) { (state, card) =>
         val (px, gx) = state

@@ -7,7 +7,7 @@ import KingdomCards._
 
 class PlayerSpec extends UnitSpec {
 
-  val emptyGame = Game(Map.empty, EmptyDeck, EmptyDeck)
+  val emptyGame = Game(Map.empty, Map.empty, EmptyDeck)
 
   "A player" should "be able to draw one card from his deck" in {
     val pStateOne = new Player("P", deck = Deck(Copper, Estate)).draws
@@ -92,35 +92,35 @@ class PlayerSpec extends UnitSpec {
 
   it should "not be able to buy a card, if he does not have enough coins" in {
     val subject = Player("P", hand = Deck(Copper), deck = EmptyDeck)
-    val game = emptyGame.copy(players = Map(subject.name -> subject), cards = Deck(Moat))
+    val game = emptyGame.copy(players = Map(subject.name -> subject), supplyPiles = Map(Moat -> 1))
 
     val (pStateOne, gStateOne) = subject.buys(Moat)(game)
 
     pStateOne.buysLens.get shouldBe 1
     pStateOne.hand should contain only Copper
-    gStateOne.cards should contain only Moat
+    gStateOne.supplyPiles should contain only (Moat -> 1)
   }
 
   it should "be able to buy a card, if he has enough coins in his hand" in {
     val subject = Player("P", hand = Deck(Silver), deck = EmptyDeck)
-    val game = emptyGame.copy(players = Map(subject.name -> subject), cards = Deck(Moat))
+    val game = emptyGame.copy(players = Map(subject.name -> subject), supplyPiles = Map(Moat -> 1))
 
     val (pStateOne, gStateOne) = subject.buys(Moat)(game)
 
     pStateOne.buysLens.get shouldBe 0
     pStateOne.hand should contain only Moat
-    gStateOne.cards shouldBe 'empty
+    gStateOne.supplyPiles should contain only (Moat -> 0)
   }
 
   it should "be able to buy a card, if he has enough coins including extra coins" in {
     val subject = Player("P", hand = Deck(Copper), deck = EmptyDeck, turn = Turn(0, 1, Coins(1)))
-    val game = emptyGame.copy(players = Map(subject.name -> subject), cards = Deck(Moat))
+    val game = emptyGame.copy(players = Map(subject.name -> subject), supplyPiles = Map(Moat -> 1))
 
     val (pStateOne, gStateOne) = subject.buys(Moat)(game)
 
     pStateOne.buysLens.get shouldBe 0
     pStateOne.hand should contain only Moat
-    gStateOne.cards shouldBe 'empty
+    gStateOne.supplyPiles should contain only (Moat -> 0)
   }
 
   // TODO test buys when the preferred card is not available in the main deck
