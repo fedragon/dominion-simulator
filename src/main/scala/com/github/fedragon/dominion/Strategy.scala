@@ -1,11 +1,9 @@
 package com.github.fedragon.dominion
 
-import Deck._
-
-trait Strategy extends CellarStrategy with SpyStrategy
+import VictoryCards.{Duchy, Estate, Province}
 
 trait CellarStrategy {
-  def whatToDiscard(cards: Deck): Deck
+  def discardForCellar(cards: Deck): Deck
 }
 
 trait SpyStrategy {
@@ -13,13 +11,13 @@ trait SpyStrategy {
   def shouldSpyVictimDiscard(card: Card): Boolean
 }
 
+trait Strategy extends CellarStrategy with SpyStrategy
+
 class DefaultStrategy extends Strategy {
   // TODO improve
+  val DiscardableForCellar = Deck(Estate, Duchy, Province)
 
-  def whatToDiscard(cards: Deck): Deck =
-    cards.draw.map {
-      case (card, _) => Deck(card)
-    }.getOrElse(EmptyDeck)
+  def discardForCellar(cards: Deck): Deck = cards.filter(c => DiscardableForCellar.contains(c))
 
   def shouldSpyHolderDiscard(card: Card) = false
   def shouldSpyVictimDiscard(card: Card) = true

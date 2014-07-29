@@ -10,13 +10,13 @@ class CardsSpec extends UnitSpec {
   val emptyGame = Game(Map.empty, Map.empty, EmptyDeck)
 
   "Cellar" should "translate to: +1 action, discard N cards and draw N cards" in {
-    val subject = Player("P", hand = Deck(Cellar, Market), deck = Deck(Copper))
+    val subject = Player("P", hand = Deck(Cellar, Province), deck = Deck(Copper))
     val game = emptyGame.copy(players = Map(subject.name -> subject))
 
     val (stateOne, _) = subject.plays(Cellar)(game)
 
     stateOne.hand.loneElement shouldBe Copper
-    stateOne.discarded should contain theSameElementsAs Deck(Cellar, Market)
+    stateOne.discarded should contain theSameElementsAs Deck(Cellar, Province)
     stateOne.deck shouldBe 'empty
     stateOne.turn shouldBe Turn(actions = 1, buys = 1, coins = Coins(0))
   }
