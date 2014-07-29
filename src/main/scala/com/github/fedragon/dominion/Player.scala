@@ -3,19 +3,20 @@ package com.github.fedragon.dominion
 import Deck._
 import scalaz.Scalaz._
 
-sealed trait Strategy {
+trait Strategy {
+  def buyPreference(cards: Deck): Deck
+  def sortByPreference(actions: Actions): Actions
+
   // Militia specific action
   def whatToDiscard(cards: Deck): Deck
 
   // Spy specific actions
-  // TODO
-  def shouldIDiscard(card: Card) = false
-  def shouldVictimDiscard(card: Card) = true
+  def shouldIDiscard(card: Card): Boolean
+  def shouldVictimDiscard(card: Card): Boolean
 }
 
-trait DefaultStrategy extends Strategy {
+class DefaultStrategy extends Strategy {
   // TODO improve
-  self: Player =>
 
   def sortByPreference(actions: Actions): Actions = actions.sortWith(_.cost > _.cost)
 
@@ -25,13 +26,17 @@ trait DefaultStrategy extends Strategy {
     cards.draw.map {
       case (card, _) => Deck(card)
     }.getOrElse(EmptyDeck)
+
+  override def shouldIDiscard(card: Card) = false
+  override def shouldVictimDiscard(card: Card) = true
 }
 
 case class Player(name: String,
                   hand: Deck = EmptyDeck,
                   discarded: Deck = EmptyDeck,
                   deck: Deck,
-                  turn: Turn = Turn(actions = 1, buys = 1, coins = Coins(0))) extends PlayerOps with DefaultStrategy {
+                  turn: Turn = Turn(actions = 1, buys = 1, coins = Coins(0)),
+                  strategy: Strategy = new DefaultStrategy) extends PlayerOps {
 
   import Player._
   import monocle.syntax._
@@ -109,7 +114,7 @@ case class Player(name: String,
       withPlayer(discard(a)) { p =>
         withPlayer(p.actionsLens.modify(_ - 1)) { p2 =>
           val game = playAction(a)(p2)(g)
-          (game.find(this), game)
+          (game.find(p2), game)
         }
       }
     }
@@ -118,7 +123,7 @@ case class Player(name: String,
   def playTurn(game: Game): Game = {
 
     def playActions(p: Player, g: Game): (Player, Game) = {
-      val actions = sortByPreference(p.handLens.get.collect {
+      val actions = strategy.sortByPreference(p.handLens.get.collect {
         case Action(a) => a
       })
 
@@ -153,10 +158,10 @@ case class Player(name: String,
     g2.update(p2.discardHand.drawsN(5))
   }
 
-  def reveals(discard: Card => Boolean) = {
+  def reveals(shouldDiscard: Card => Boolean) = {
     val (card, state) = revealFromDeck
 
-    if (discard(card))
+    if (shouldDiscard(card))
       state.discardedLens.modify(card +: _)
     else state.deckLens.modify(card +: _)
   }

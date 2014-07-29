@@ -15,8 +15,8 @@ class CardsSpec extends UnitSpec {
 
     val (stateOne, _) = subject.plays(Cellar)(game)
 
-    stateOne.hand should contain only Copper
-    stateOne.discarded should contain only(Cellar, Market)
+    stateOne.hand.loneElement shouldBe Copper
+    stateOne.discarded should contain theSameElementsAs Deck(Cellar, Market)
     stateOne.deck shouldBe 'empty
     stateOne.turn shouldBe Turn(actions = 1, buys = 1, coins = Coins(0))
   }
@@ -27,7 +27,7 @@ class CardsSpec extends UnitSpec {
 
     val (stateOne, _) = subject.plays(Market)(game)
 
-    stateOne.hand should contain only Copper
+    stateOne.hand.loneElement shouldBe Copper
     stateOne.deck shouldBe 'empty
     stateOne.turn shouldBe Turn(actions = 1, buys = 2, coins = Coins(1))
   }
@@ -36,12 +36,12 @@ class CardsSpec extends UnitSpec {
     val subject = Player("P", hand = Deck(Mine, Copper), deck = EmptyDeck)
     val game = emptyGame.copy(players = Map(subject.name -> subject), supplyPiles = Map(Silver -> 1))
 
-    val (stateOne, updatedGame) = subject.plays(Mine)(game)
+    val (stateOne, gameOne) = subject.plays(Mine)(game)
 
-    stateOne.hand should contain only Silver
+    stateOne.hand.loneElement shouldBe Silver
     stateOne.deck shouldBe 'empty
 
-    updatedGame.trashed should contain only Copper
+    gameOne.trashed.loneElement shouldBe Copper
   }
 
   "Moat" should "translate to: +2 cards (when played as action)" in {
@@ -62,8 +62,8 @@ class CardsSpec extends UnitSpec {
     val (_, gameOne) = subject.plays(Witch)(game)
 
     val otherOne = gameOne.find(other)
-    otherOne.deck shouldNot contain (Curse)
-    otherOne.hand should contain only Moat
+    otherOne.deck shouldNot contain(Curse)
+    otherOne.hand.loneElement shouldBe Moat
   }
 
   "Smithy" should "translate to: +3 cards" in {
@@ -77,44 +77,27 @@ class CardsSpec extends UnitSpec {
   }
 
   "Spy" should "translate to: +1 card, +1 action, every player reveals his top cards and maybe discards it, the attacker decides" in {
-    val subject = Player("P", hand = Deck(Spy), deck = Deck(Estate, Copper))
+    class MyStrategy extends DefaultStrategy {
+      override def shouldIDiscard(card: Card) = true
+      override def shouldVictimDiscard(card: Card) = card === Copper
+    }
+
+    val subject = new Player("P", hand = Deck(Spy), deck = Deck(Estate, Gold), strategy = new MyStrategy)
     val other = Player("O", hand = EmptyDeck, deck = Deck(Copper, Smithy))
-    val another = Player("A", hand = EmptyDeck, deck = Deck(Mine, Province))
+    val another = Player("A", hand = EmptyDeck, deck = EmptyDeck, discarded = Deck(Mine, Province))
     val game = emptyGame.copy(players = Map(subject.name -> subject, other.name -> other, another.name -> another))
 
     val (stateOne, gameOne) = subject.plays(Spy)(game)
 
-    stateOne.hand.size shouldBe 1
+    stateOne.hand.loneElement shouldBe Estate
     stateOne.turn shouldBe Turn(actions = 1, buys = 1, coins = Coins(0))
-    stateOne.deck.head shouldBe Copper
+    stateOne.discarded should contain theSameElementsAs Deck(Gold, Spy)
 
-    gameOne.find(other).deck.head shouldBe Smithy
-    gameOne.find(other).discarded.head shouldBe Copper
+    gameOne.find(other).deck.loneElement shouldBe Smithy
+    gameOne.find(other).discarded.loneElement shouldBe Copper
 
-    gameOne.find(another).deck.head shouldBe Mine
+    gameOne.find(another).deck should contain theSameElementsAs Deck(Mine, Province)
     gameOne.find(another).discarded shouldBe 'empty
-  }
-
-  it should "make sure that the victim puts the revealed card back on top of his deck, if the attacker says so" in {
-    val subject = Player("P", hand = Deck(Spy), deck = Deck(Estate, Copper))
-    val other = Player("O", hand = EmptyDeck, deck = Deck(Province, Gold))
-    val game = emptyGame.copy(players = Map(subject.name -> subject, other.name -> other))
-
-    val (_, gameOne) = subject.plays(Spy)(game)
-
-    gameOne.find(other).deck.head shouldBe Province
-    gameOne.find(other).discarded shouldBe 'empty
-  }
-
-  it should "make sure that the victim shuffles his deck, if he does not have any card left" in {
-    val subject = Player("P", hand = Deck(Spy), deck = Deck(Estate, Copper))
-    val other = Player("O", hand = EmptyDeck, deck = EmptyDeck, discarded = Deck(Province))
-    val game = emptyGame.copy(players = Map(subject.name -> subject, other.name -> other))
-
-    val (_, gameOne) = subject.plays(Spy)(game)
-
-    gameOne.find(other).deck.head shouldBe Province
-    gameOne.find(other).discarded shouldBe 'empty
   }
 
   "Witch" should "translate to: +2 and +1 curse to all the other players" in {
@@ -128,7 +111,7 @@ class CardsSpec extends UnitSpec {
     stateOne.hand.size shouldBe 2
     stateOne.deck shouldBe 'empty
 
-    gameOne.find(other).deck should contain only Curse
-    gameOne.find(another).deck should contain only Curse
+    gameOne.find(other).deck.loneElement shouldBe Curse
+    gameOne.find(another).deck.loneElement shouldBe Curse
   }
 }

@@ -11,7 +11,7 @@ trait PlayerOps {
     a match {
       case Cellar =>
         // Discard N cards, draw N cards, +1 action
-        val (discarded, newHand) = p.hand.partition(c => p.whatToDiscard(p.hand).contains(c))
+        val (discarded, newHand) = p.hand.partition(c => p.strategy.whatToDiscard(p.hand).contains(c))
         val p2 = p.copy(hand = newHand, discarded = p.discarded ++ discarded)
 
         g.update(p2.drawsN(discarded.size).actionsLens modify (_ + 1))
@@ -41,11 +41,11 @@ trait PlayerOps {
         // decides whether to discard it or not: if not discarded, the card goes back on top of the deck.
 
         // Draw 1 card, +1 action
-        val attacker = p.draws.actionsLens.modify(_ + 1).reveals(p.shouldIDiscard)
+        val attacker = p.draws.actionsLens.modify(_ + 1).reveals(p.strategy.shouldIDiscard)
         val g2 = g.update(attacker)
 
         // Reveal every victim's top card, maybe discard it
-        val ps = g2.victims(p).map(_.reveals(attacker.shouldVictimDiscard))
+        val ps = g2.victims(p).map(_.reveals(attacker.strategy.shouldVictimDiscard))
 
         ps.foldLeft(g2)((gn, pn) => gn.update(pn))
       case Witch =>

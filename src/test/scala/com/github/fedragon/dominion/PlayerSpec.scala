@@ -12,7 +12,7 @@ class PlayerSpec extends UnitSpec {
   "A player" should "be able to draw one card from his deck" in {
     val pStateOne = new Player("P", deck = Deck(Copper, Estate)).draws
     pStateOne.hand should contain(Copper)
-    pStateOne.deck should contain only Estate
+    pStateOne.deck.loneElement shouldBe Estate
 
     val pStateTwo = pStateOne.draws
     pStateTwo.deck shouldBe 'empty
@@ -36,7 +36,7 @@ class PlayerSpec extends UnitSpec {
     val pStateTwo = subject.reveals(_ => true)
 
     pStateTwo.deck.loneElement shouldBe Estate
-    pStateTwo.discarded should contain(Gold)
+    pStateTwo.discarded.loneElement shouldBe Gold
   }
 
   it should "be able to reveal the top card in his deck even when all his cards are discarded" in {
@@ -48,8 +48,9 @@ class PlayerSpec extends UnitSpec {
 
     val pStateTwo = subject.reveals(_ => true)
 
-    pStateTwo.deck should contain only Estate
-    pStateTwo.discarded should contain only Gold
+    // shuffling involved, cannot assert on specific cards
+    pStateTwo.deck.size shouldBe 1
+    pStateTwo.discarded.size shouldBe 1
   }
 
   it should "be able to know the total amount of coins he can spend" in {
@@ -64,7 +65,7 @@ class PlayerSpec extends UnitSpec {
     val pStateTwo = pStateOne.discard(Copper)
 
     pStateTwo.hand shouldBe 'empty
-    pStateTwo.discarded should contain only Copper
+    pStateTwo.discarded.loneElement shouldBe Copper
   }
 
   it should "be able to discard N cards from his hand" in {
@@ -73,16 +74,18 @@ class PlayerSpec extends UnitSpec {
     val pStateTwo = pStateOne.discard(Deck(Copper, Silver))
 
     pStateTwo.hand shouldBe 'empty
-    pStateTwo.discarded should contain only(Copper, Silver)
+    pStateTwo.discarded should contain theSameElementsAs Deck(Copper, Silver)
   }
 
   it should "be able to discard his whole hand" in {
     val pStateOne = new Player("P", deck = Deck(Copper, Estate)).draws
-    pStateOne.hand should contain(Copper)
+
+    pStateOne.hand.loneElement shouldBe Copper
 
     val pStateTwo = pStateOne.discardHand
+
     pStateTwo.hand shouldBe 'empty
-    pStateTwo.discarded should contain(Copper)
+    pStateTwo.discarded.loneElement shouldBe Copper
   }
 
   it should "play an action, if there is at least one such action in his hand" in {
@@ -123,8 +126,8 @@ class PlayerSpec extends UnitSpec {
     val (pStateOne, gStateOne) = subject.buys(Moat)(game)
 
     pStateOne.buysLens.get shouldBe 1
-    pStateOne.hand should contain only Copper
-    gStateOne.supplyPiles should contain only (Moat -> 1)
+    pStateOne.hand.loneElement shouldBe Copper
+    gStateOne.supplyPiles.loneElement shouldBe (Moat -> 1)
   }
 
   it should "be able to buy a card, if he has enough coins in his hand" in {
@@ -134,8 +137,8 @@ class PlayerSpec extends UnitSpec {
     val (pStateOne, gStateOne) = subject.buys(Moat)(game)
 
     pStateOne.buysLens.get shouldBe 0
-    pStateOne.hand should contain only Moat
-    gStateOne.supplyPiles should contain only (Moat -> 0)
+    pStateOne.hand.loneElement shouldBe Moat
+    gStateOne.supplyPiles.loneElement shouldBe (Moat -> 0)
   }
 
   it should "be able to buy a card, if he has enough coins including extra coins" in {
@@ -145,8 +148,8 @@ class PlayerSpec extends UnitSpec {
     val (pStateOne, gStateOne) = subject.buys(Moat)(game)
 
     pStateOne.buysLens.get shouldBe 0
-    pStateOne.hand should contain only Moat
-    gStateOne.supplyPiles should contain only (Moat -> 0)
+    pStateOne.hand.loneElement shouldBe Moat
+    gStateOne.supplyPiles.loneElement shouldBe (Moat -> 0)
   }
 
   // TODO test buys when the preferred card is not available in the main deck

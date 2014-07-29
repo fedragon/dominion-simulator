@@ -38,7 +38,7 @@ class GameSpec extends UnitSpec {
 
     val (card, game) = result.get
     card shouldBe Moat
-    game.supplyPiles should contain only (Moat -> 0)
+    game.supplyPiles.loneElement shouldBe (Moat -> 0)
 
     subject.pick(_ === Witch) shouldBe None
   }
@@ -46,7 +46,7 @@ class GameSpec extends UnitSpec {
   it should "trash a card" in {
     val subject = Game(Map.empty[String, Player], Map.empty, EmptyDeck)
 
-    subject.trash(Moat).trashed should contain only Moat
+    subject.trash(Moat).trashed.loneElement shouldBe Moat
   }
 
   it should "update a player" in {
@@ -65,7 +65,7 @@ class GameSpec extends UnitSpec {
 
     val subject = Game(Map(p1.name -> p1, p2.name -> p2, p3.name -> p3), Map.empty, EmptyDeck)
 
-    subject.victims(p1) should contain only p3
+    subject.victims(p1).loneElement shouldBe p3
   }
 
 }
