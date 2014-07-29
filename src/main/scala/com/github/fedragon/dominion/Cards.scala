@@ -12,7 +12,7 @@ object KingdomCards {
 
   case object Smithy extends Action("Smithy", cost = Coins(4))
 
-  case object Spy extends Action("Spy", cost = Coins(4))
+  case object Spy extends Action("Spy", cost = Coins(4)) with Attack
 
   case object Witch extends Action("Witch", cost = Coins(5)) with Attack
 
