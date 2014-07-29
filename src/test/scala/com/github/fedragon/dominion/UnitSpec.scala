@@ -1,6 +1,5 @@
 package com.github.fedragon.dominion
 
-import org.scalatest.prop.GeneratorDrivenPropertyChecks
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.{FlatSpec, LoneElement, Matchers}
 
-class UnitSpec extends FlatSpec with GeneratorDrivenPropertyChecks with Matchers
+class UnitSpec extends FlatSpec with LoneElement with Matchers
