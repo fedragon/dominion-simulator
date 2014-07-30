@@ -29,12 +29,18 @@ case class Player(name: String,
   def buys(card: Card)(g: Game): (Player, Game) = {
     val cost = card.cost
 
-    if (cost > coins) return (this, g)
+    Logger.info(s"$name wants to buy ${card.name}")
+
+    if (cost > coins) {
+      Logger.info(s"$name cannot buy ${card.name} for ${cost.value} coins because he only has ${cost.value} coins")
+      return (this, g)
+    }
 
     val p: Player =
-      if (extraCoinsLens.get >= cost)
+      if (extraCoinsLens.get >= cost) {
+        Logger.info(s"$name uses ${cost.value} from his extra coins to buy ${card.name}")
         extraCoinsLens.modify(_ - cost)
-      else {
+      } else {
         val diff = cost - extraCoinsLens.get
         val (_, cardsToDiscard) = hand.onlyTreasures.foldLeft((diff, EmptyDeck)) { (state, treasure) =>
           val (remaining, cards) = state
@@ -49,6 +55,7 @@ case class Player(name: String,
     val (p2, g2) = g.pick(_ === card).fold((p, g)) {
       case (_, gx) =>
         val px = p.handLens.modify(card +: _).buysLens.modify(_ - 1)
+        Logger.info(s"$name buys ${card.name} for ${cost.value} coins")
         px -> gx.update(px)
     }
 
