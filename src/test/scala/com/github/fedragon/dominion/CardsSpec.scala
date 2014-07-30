@@ -10,7 +10,7 @@ class CardsSpec extends UnitSpec {
   val emptyGame = Game(Map.empty, Map.empty, EmptyDeck)
 
   "Cellar" should "translate to: +1 action, discard N cards and draw N cards" in {
-    val subject = Player("P", hand = Deck(Cellar, Province), deck = Deck(Copper))
+    val subject = Player("X", hand = Deck(Cellar, Province), deck = Deck(Copper))
     val game = emptyGame.copy(players = Map(subject.name -> subject))
 
     val (stateOne, _) = subject.plays(Cellar)(game)
@@ -22,7 +22,7 @@ class CardsSpec extends UnitSpec {
   }
 
   "Market" should "translate to: +1 card, +1 action, +1 buy, +1 coin" in {
-    val subject = Player("P", hand = Deck(Market), deck = Deck(Copper))
+    val subject = Player("X", hand = Deck(Market), deck = Deck(Copper))
     val game = emptyGame.copy(players = Map(subject.name -> subject))
 
     val (stateOne, _) = subject.plays(Market)(game)
@@ -33,7 +33,7 @@ class CardsSpec extends UnitSpec {
   }
 
   "Mine" should "translate to: trash 1 treasure card and get 1 whose cost is +3" in {
-    val subject = Player("P", hand = Deck(Mine, Copper), deck = EmptyDeck)
+    val subject = Player("X", hand = Deck(Mine, Copper), deck = EmptyDeck)
     val game = emptyGame.copy(players = Map(subject.name -> subject), supplyPiles = Map(Silver -> 1))
 
     val (stateOne, gameOne) = subject.plays(Mine)(game)
@@ -45,7 +45,7 @@ class CardsSpec extends UnitSpec {
   }
 
   "Moat" should "translate to: +2 cards (when played as action)" in {
-    val subject = Player("P", hand = Deck(Moat), deck = Deck(Copper, Copper))
+    val subject = Player("X", hand = Deck(Moat), deck = Deck(Copper, Copper))
     val game = emptyGame.copy(players = Map(subject.name -> subject))
 
     val (stateOne, _) = subject.plays(Moat)(game)
@@ -55,8 +55,8 @@ class CardsSpec extends UnitSpec {
   }
 
   "Moat" should "nullify any attack on a player who has it in his hand" in {
-    val subject = Player("P", hand = Deck(Witch), deck = Deck(Copper, Copper))
-    val other = Player("O", hand = Deck(Moat), deck = EmptyDeck)
+    val subject = Player("X", hand = Deck(Witch), deck = Deck(Copper, Copper))
+    val other = Player("Y", hand = Deck(Moat), deck = EmptyDeck)
     val game = emptyGame.copy(players = Map(subject.name -> subject, other.name -> other))
 
     val (_, gameOne) = subject.plays(Witch)(game)
@@ -67,7 +67,7 @@ class CardsSpec extends UnitSpec {
   }
 
   "Smithy" should "translate to: +3 cards" in {
-    val subject = Player("P", hand = Deck(Smithy), deck = Deck(Copper, Estate, Copper))
+    val subject = Player("X", hand = Deck(Smithy), deck = Deck(Copper, Estate, Copper))
     val game = emptyGame.copy(players = Map(subject.name -> subject))
 
     val (stateOne, _) = subject.plays(Smithy)(game)
@@ -82,9 +82,9 @@ class CardsSpec extends UnitSpec {
       override def spyVictimDiscards(card: Card) = card === Copper
     }
 
-    val subject = new Player("P", hand = Deck(Spy), deck = Deck(Estate, Gold), strategy = new MyStrategy)
-    val other = Player("O", hand = EmptyDeck, deck = Deck(Copper, Smithy))
-    val another = Player("A", hand = EmptyDeck, deck = EmptyDeck, discarded = Deck(Mine, Province))
+    val subject = new Player("X", hand = Deck(Spy), deck = Deck(Estate, Gold), strategy = new MyStrategy)
+    val other = Player("Y", hand = EmptyDeck, deck = Deck(Copper, Smithy))
+    val another = Player("Z", hand = EmptyDeck, deck = EmptyDeck, discarded = Deck(Mine, Province))
     val game = emptyGame.copy(players = Map(subject.name -> subject, other.name -> other, another.name -> another))
 
     val (stateOne, gameOne) = subject.plays(Spy)(game)
@@ -101,9 +101,9 @@ class CardsSpec extends UnitSpec {
   }
 
   "Thief" should "translate to: every victim reveals 2 cards from his deck and attacker can gain or trash one of them (the remaining are discarded)" in {
-    val subject = new Player("P", hand = Deck(Thief), deck = EmptyDeck)
-    val other = Player("O", hand = EmptyDeck, deck = Deck(Silver, Smithy))
-    val another = Player("A", hand = EmptyDeck, deck = EmptyDeck, discarded = Deck(Copper, Copper))
+    val subject = new Player("X", hand = Deck(Thief), deck = EmptyDeck)
+    val other = Player("Y", hand = EmptyDeck, deck = Deck(Silver, Smithy))
+    val another = Player("Z", hand = EmptyDeck, deck = EmptyDeck, discarded = Deck(Copper, Copper))
     val game = emptyGame.copy(players = Map(subject.name -> subject, other.name -> other, another.name -> another))
 
     val (stateOne, gameOne) = subject.plays(Thief)(game)
@@ -121,9 +121,9 @@ class CardsSpec extends UnitSpec {
   }
 
   "Witch" should "translate to: +2 and +1 curse to all the other players" in {
-    val subject = Player("P", hand = Deck(Witch), deck = Deck(Copper, Copper))
-    val other = Player("O", hand = EmptyDeck, deck = EmptyDeck)
-    val another = Player("A", hand = EmptyDeck, deck = EmptyDeck)
+    val subject = Player("X", hand = Deck(Witch), deck = Deck(Copper, Copper))
+    val other = Player("Y", hand = EmptyDeck, deck = EmptyDeck)
+    val another = Player("Z", hand = EmptyDeck, deck = EmptyDeck)
     val game = emptyGame.copy(
       players = Map(subject.name -> subject, other.name -> other, another.name -> another),
       supplyPiles = Map(Curse -> 2))

@@ -14,18 +14,20 @@ trait PlayerOps extends ThiefOps {
       case Cellar =>
         // Discard N cards, draw N cards, +1 action
         val (discarded, newHand) = p.hand.partition(c => p.strategy.discardForCellar(p.hand).contains(c))
+        p.Logger.info(s"${p.name} discards $discarded")
         val p2 = p.copy(hand = newHand, discarded = p.discarded ++ discarded)
 
         g.update(p2.drawsN(discarded.size).actionsLens modify (_ + 1))
       case Market =>
         // Draw 1 card, +1 action, +1 buy, +1 coin
-        g.update(p.draws.turnLens modify (_ + Turn(1, 1, Coins(1))))
+        g.update(p.draws.turnLens.modify(_ + Turn(1, 1, Coins(1))))
       case Mine =>
         // Trash 1 treasure card and get one whose cost is +3
         val g3 = for {
           treasure <- pickTreasure(p)
           (newTreasure, g2) <- g.trash(treasure).pick(treasureByCost(treasure.cost + Coins(3)))
         } yield {
+          p.Logger.info(s"${p.name} trashes ${treasure.name} and gains ${newTreasure.name}")
           g2.update(withPlayer(p.discard(treasure)) {
             _.handLens.modify(newTreasure +: _)
           })
@@ -86,12 +88,16 @@ trait ThiefOps {
 
         val treasures = revealed.onlyTreasures
 
+        p.Logger.info(s"Treasures revealed $treasures")
+
         val gn = if (treasures.isEmpty) {
           // no treasures: discard both revealed cards
           val victim2 = revealed.foldLeft(victim)((state, card) => state.discardedLens.modify(card +: _))
+          p.Logger.info(s"No treasures. ${victim.name} discards revealed cards $revealed")
           game.update(victim2)
         } else {
           val (gainable, discardable) = treasures.partition(p.strategy.holderGainsRevealedTreasure)
+
 
           (gainable.toList, discardable.toList) match {
             case (hd :: tl, Nil) =>
@@ -103,7 +109,7 @@ trait ThiefOps {
             case (gain :: Nil, disc :: Nil) =>
               // gain one, discard one
               oneGainableOneDiscardable(gain, disc)(victim)(game)
-            case _ => throw new IllegalStateException("How could this ever happen?!")
+            case _ => throw new IllegalStateException("How could this even happen?!")
           }
         }
 
@@ -114,6 +120,8 @@ trait ThiefOps {
 
   private def onlyGainableTreasures(hd: Treasure, tl: List[Treasure])(victim: Player)(game: Game): Game = {
     val updatedAttacker = p.discardedLens.modify(hd +: _)
+
+    p.Logger.info(s"${p.name} gains $hd from ${victim.name}, ${victim.name} discards [$tl]")
 
     val updatedVictim =
       if (tl.nonEmpty)
@@ -126,6 +134,8 @@ trait ThiefOps {
   private def onlyDiscardableTreasures(hd: Treasure, tl: List[Treasure])(victim: Player)(game: Game): Game = {
     val g2 = game.trash(hd)
 
+    p.Logger.info(s"${victim.name} trashes $hd and discards [$tl]")
+
     if (tl.nonEmpty)
       g2.update(victim.discardedLens.modify(tl.head +: _))
     else g2
@@ -134,6 +144,8 @@ trait ThiefOps {
   private def oneGainableOneDiscardable(gain: Treasure, disc: Treasure)(victim: Player)(game: Game): Game = {
     val updatedAttacker = p.discardedLens.modify(gain +: _)
     val updatedVictim = victim.discardedLens.modify(disc +: _)
+
+    p.Logger.info(s"${p.name} gains $gain from ${victim.name}; ${victim.name} discards [$disc]")
 
     game.update(updatedAttacker).update(updatedVictim)
   }

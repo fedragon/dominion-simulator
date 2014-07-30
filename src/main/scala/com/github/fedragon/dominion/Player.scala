@@ -83,7 +83,7 @@ case class Player(name: String,
   }
 
   def draws: Player = {
-    val (card, state) = revealFromDeck
+    val (card, state) = drawFromDeck
     Logger.info(s"$name draws ${card.name} from his deck to his hand")
     state.handLens.modify(card +: _)
   }
@@ -91,7 +91,9 @@ case class Player(name: String,
   def drawsN(n: Int): Player = (0 until n).foldLeft(this)((p, _) => p.draws)
 
   def plays(a: Action)(g: Game): (Player, Game) = {
-    validateAction(a).fold((this, g)) { _ =>
+    Logger.info(s"$name wants to play $a")
+    val result = validateAction(a).fold((this, g)) { _ =>
+      Logger.info(s"$name plays $a")
       // discard this action and update the turn, then play the action
       withPlayer(discard(a)) { p =>
         withPlayer(p.actionsLens.modify(_ - 1)) { p2 =>
@@ -100,6 +102,8 @@ case class Player(name: String,
         }
       }
     }
+    Logger.info(s"$name played ${a.name}")
+    result
   }
 
   def playTurn(game: Game): Game = {
@@ -134,15 +138,22 @@ case class Player(name: String,
     // Actions Phase
     val (p1, g1) = playActions(this, game)
 
+    Logger.info(s"$name completed his action phase")
+
     // Buy Phase
     val (p2, g2) = playBuys(p1, g1)
 
+    Logger.info(s"$name completed his buy phase")
+
     // Cleanup Phase: discard hand and draw next 5 cards
-    g2.update(p2.discardHand.drawsN(5))
+    val newPlayer = g2.update(p2.discardHand.drawsN(5))
+    Logger.info(s"$name completed his turn: $newPlayer")
+    newPlayer
   }
 
   def reveals(shouldDiscard: Card => Boolean) = {
-    val (card, state) = revealFromDeck
+    val (card, state) = drawFromDeck
+    Logger.info(s"$name reveals ${card.name} from the top of his deck")
 
     if (shouldDiscard(card)) {
       Logger.info(s"$name discards ${card.name} as requested by the attacker")
@@ -157,7 +168,8 @@ case class Player(name: String,
     (0 until n).foldLeft((EmptyDeck, this)) {
       (state, _) =>
         val (stash, p) = state
-        val (card, p2) = p.revealFromDeck
+        val (card, p2) = p.drawFromDeck
+        Logger.info(s"$name reveals ${card.name} from the top of his deck")
         (card +: stash, p2)
     }
   }
@@ -165,20 +177,24 @@ case class Player(name: String,
   def allVictories: Victories =
     hand.onlyVictories ++ discarded.onlyVictories ++ deck.onlyVictories
 
-  private def revealFromDeck: (Card, Player) =
+  private def drawFromDeck: (Card, Player) =
     deck.draw match {
       case Some((card, newDeck)) =>
-        Logger.info(s"$name reveals ${card.name} from the top of his deck")
         (card, deckLens.set(newDeck))
       case None =>
         val (card, newDeck) = (deck ++ discarded).shuffle.draw.get
-        Logger.info(s"$name reveals ${card.name} from the top of his deck")
         (card, discardedLens.set(EmptyDeck).deckLens.set(newDeck))
     }
 
-  private def validateAction(a: Action) =
-    if (actionsLens.get > 0) hand.find(_ === a)
-    else None
+  private def validateAction(a: Action) = {
+    if (actionsLens.get > 0) {
+      Logger.info(s"$name can play ${a.name}")
+      hand.find(_ === a)
+    } else {
+      Logger.info(s"$name cannot play ${a.name} because he is out of actions")
+      None
+    }
+  }
 }
 
 object Player {
