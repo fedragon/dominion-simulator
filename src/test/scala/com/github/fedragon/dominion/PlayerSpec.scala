@@ -148,6 +148,7 @@ class PlayerSpec extends UnitSpec {
     val (pStateOne, gStateOne) = subject.buys(Moat)(game)
 
     pStateOne.buysLens.get shouldBe 0
+    pStateOne.extraCoinsLens.get shouldBe Coins(0)
     pStateOne.hand.loneElement shouldBe Moat
     gStateOne.supplyPiles.loneElement shouldBe (Moat -> 0)
   }

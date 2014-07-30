@@ -43,7 +43,7 @@ case class Player(name: String,
           else (remaining - treasure.value, treasure +: cards)
         }
 
-        discard(cardsToDiscard)
+        extraCoinsLens.set(Coins(0)).discard(cardsToDiscard)
       }
 
     val (p2, g2) = g.pick(_ === card).fold((p, g)) {
