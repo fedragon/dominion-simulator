@@ -126,7 +126,7 @@ class CardsSpec extends UnitSpec {
     val another = Player("Z", hand = EmptyDeck, deck = EmptyDeck)
     val game = emptyGame.copy(
       players = Map(subject.name -> subject, other.name -> other, another.name -> another),
-      supplyPiles = Map(Curse -> 2))
+      supplyPiles = Map(Smithy -> 2, Curse -> 5))
 
     val (stateOne, gameOne) = subject.plays(Witch)(game)
 
@@ -135,5 +135,19 @@ class CardsSpec extends UnitSpec {
 
     gameOne.find(other).deck.loneElement shouldBe Curse
     gameOne.find(another).deck.loneElement shouldBe Curse
+  }
+
+  it should "not give Curses to victims if their pile is empty" in {
+    val subject = Player("X", hand = Deck(Witch), deck = Deck(Copper, Copper))
+    val other = Player("Y", hand = EmptyDeck, deck = EmptyDeck)
+    val another = Player("Z", hand = EmptyDeck, deck = EmptyDeck)
+    val game = emptyGame.copy(
+      players = Map(subject.name -> subject, other.name -> other, another.name -> another),
+      supplyPiles = Map(Smithy -> 2, Curse -> 0))
+
+    val (_, gameOne) = subject.plays(Witch)(game)
+
+    gameOne.find(other).deck shouldBe 'empty
+    gameOne.find(another).deck shouldBe 'empty
   }
 }

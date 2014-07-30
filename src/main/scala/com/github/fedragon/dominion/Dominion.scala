@@ -2,11 +2,16 @@ package com.github.fedragon.dominion
 
 import Deck._
 
+import TreasureCards._
+import VictoryCards._
+
 import scalaz.Scalaz._
 
 case class Game(players: Map[String, Player], supplyPiles: Map[Card, Int], trashed: Deck) {
 
-  import VictoryCards.Province
+  lazy val curses: Int = supplyPiles(Curse)
+
+  def drawCurse: Game = copy(supplyPiles = supplyPiles.updated(Curse, supplyPiles(Curse) - 1))
 
   val ended: Boolean =
     supplyPiles.get(Province).isEmpty || supplyPiles.count {
@@ -43,8 +48,17 @@ case class Game(players: Map[String, Player], supplyPiles: Map[Card, Int], trash
 
 object Dominion {
 
-  import TreasureCards._
-  import VictoryCards._
+  private def TreasureCards(nOfPlayers: Int) = Map(
+    Copper -> (60 - nOfPlayers * 7),
+    Silver -> 40,
+    Gold -> 30)
+
+  private val VictoryCards = Map(
+    Duchy -> 12,
+    Estate -> 12,
+    Province -> 12,
+    Curse -> 30
+  )
 
   def playGame(playerNames: Vector[String]) = {
     val players = playerNames.map(createPlayer).toMap
@@ -66,12 +80,7 @@ object Dominion {
 
   private def createStartingDeck(nOfPlayers: Int): Map[Card, Int] = {
     // TODO add more cards
-    Map(
-      Copper -> (60 - nOfPlayers * 7),
-      Duchy -> 12,
-      Estate -> 12,
-      Province -> 12
-    )
+    TreasureCards(nOfPlayers) ++ VictoryCards
   }
 
   private def declareWinner(game: Game): Unit = {

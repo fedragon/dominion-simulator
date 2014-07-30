@@ -60,9 +60,12 @@ trait PlayerOps extends ThiefOps {
       case Witch =>
         // Draw 2 cards, give one curse to all other players
         val g2 = g.update(p.drawsN(2))
-        val ps = g2.victims(p).map(_.deckLens.modify(Curse +: _))
 
-        ps.foldLeft(g2)((gn, pn) => gn.update(pn))
+        g2.victims(p).foldLeft(g2) { (gn, pn) =>
+          if (gn.curses > 0)
+            gn.drawCurse.update(pn.deckLens.modify(Curse +: _))
+          else gn
+        }
       case other =>
         throw new UnsupportedOperationException(s"Action not supported: $other")
     }

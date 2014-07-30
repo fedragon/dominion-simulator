@@ -159,4 +159,13 @@ class PlayerSpec extends UnitSpec {
 
     subject.allVictories should contain only(Duchy, Estate, Province)
   }
+
+  it should "be able to play his turn" in {
+    val subject = new Player("X",
+      hand = Deck(Market, Duchy, Copper, Copper, Copper),
+      deck = Deck(Province, Moat, Spy), discarded = EmptyDeck)
+    val g = Game(Map(subject.name -> subject), Map(Cellar -> 10, Curse -> 10, Witch -> 10), EmptyDeck)
+
+    subject.allVictories should contain only(Duchy, Estate, Province)
+  }
 }
