@@ -115,16 +115,18 @@ class CardsSpec extends UnitSpec {
     gameOne.find(other).discarded.loneElement shouldBe Smithy
 
     gameOne.find(another).deck shouldBe 'empty
-    gameOne.find(another).discarded should contain theSameElementsAs Deck(Copper)
+    gameOne.find(another).discarded.loneElement shouldBe Copper
 
-    gameOne.trashed should contain theSameElementsAs Deck(Copper)
+    gameOne.trashed.loneElement shouldBe Copper
   }
 
   "Witch" should "translate to: +2 and +1 curse to all the other players" in {
     val subject = Player("P", hand = Deck(Witch), deck = Deck(Copper, Copper))
     val other = Player("O", hand = EmptyDeck, deck = EmptyDeck)
     val another = Player("A", hand = EmptyDeck, deck = EmptyDeck)
-    val game = emptyGame.copy(players = Map(subject.name -> subject, other.name -> other, another.name -> another), supplyPiles = Map(Curse -> 2))
+    val game = emptyGame.copy(
+      players = Map(subject.name -> subject, other.name -> other, another.name -> another),
+      supplyPiles = Map(Curse -> 2))
 
     val (stateOne, gameOne) = subject.plays(Witch)(game)
 

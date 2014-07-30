@@ -6,7 +6,7 @@ import VictoryCards._
 
 import scalaz.Scalaz._
 
-trait PlayerOps {
+trait PlayerOps extends ThiefOps {
   p: Player =>
 
   def playAction(a: Action)(g: Game): Game =
@@ -54,50 +54,7 @@ trait PlayerOps {
         // Any other player reveals the top 2 cards from his deck: if they revealed any Treasure card, they trash one of
         // them that you choose. You may gain any or all of these trashed cards. They discard the other revealed cards.
 
-        val revealedCards = g.victims(p).map(_.revealsN(2))
-
-        // TODO too big: split into methods and reorganize code
-        revealedCards.foldLeft(g) {
-          case (game, rv) =>
-            val (revealed, victim) = rv
-
-            val treasures = revealed.onlyTreasures
-
-            val gn = if (treasures.isEmpty) {
-              // no treasures: discard both revealed cards
-              val victim2 = revealed.foldLeft(victim)((state, card) => state.discardedLens.modify(card +: _))
-              game.update(victim2)
-            } else {
-              val (gainable, discardable) = treasures.partition(p.strategy.holderGainsRevealedTreasure)
-
-              (gainable.toList, discardable.toList) match {
-                case (hd :: tl, Nil) =>
-                  val updatedAttacker = p.discardedLens.modify(hd +: _)
-
-                  val updatedVictim =
-                    if (tl.nonEmpty)
-                      victim.discardedLens.modify(tl.head +: _)
-                    else victim
-
-                  game.update(updatedAttacker).update(updatedVictim)
-                case (Nil, hd :: tl) =>
-                  val g2 = game.trash(hd)
-
-                  if (tl.nonEmpty)
-                    g2.update(victim.discardedLens.modify(tl.head +: _))
-                  else g2
-                case (gain :: Nil, disc :: Nil) =>
-                  val updatedAttacker = p.discardedLens.modify(gain +: _)
-                  val updatedVictim = victim.discardedLens.modify(disc +: _)
-
-                  game.update(updatedAttacker).update(updatedVictim)
-                case _ => throw new IllegalStateException("How could this ever happen?!")
-              }
-            }
-
-            // Discard any revealed non-treasure card
-            revealed.diff(treasures).foldLeft(gn)((state, card) => state.update(victim.discardedLens.modify(card +: _)))
-        }
+        playThief(g)
       case Witch =>
         // Draw 2 cards, give one curse to all other players
         val g2 = g.update(p.drawsN(2))
@@ -113,6 +70,72 @@ trait PlayerOps {
   private def treasureByCost(n: Coins) = (c: Card) => c match {
     case Treasure(t) => t.cost === n
     case _ => false
+  }
+}
+
+trait ThiefOps {
+  p: Player =>
+
+  def playThief(g: Game): Game = {
+    // every victim reveals the top 2 cards from his deck
+    val revealedCards = g.victims(p).map(_.revealsN(2))
+
+    revealedCards.foldLeft(g) {
+      case (game, rv) =>
+        val (revealed, victim) = rv
+
+        val treasures = revealed.onlyTreasures
+
+        val gn = if (treasures.isEmpty) {
+          // no treasures: discard both revealed cards
+          val victim2 = revealed.foldLeft(victim)((state, card) => state.discardedLens.modify(card +: _))
+          game.update(victim2)
+        } else {
+          val (gainable, discardable) = treasures.partition(p.strategy.holderGainsRevealedTreasure)
+
+          (gainable.toList, discardable.toList) match {
+            case (hd :: tl, Nil) =>
+              // gain one, discard the other
+              onlyGainableTreasures(hd, tl)(victim)(game)
+            case (Nil, hd :: tl) =>
+              // trash one, discard the other
+              onlyDiscardableTreasures(hd, tl)(victim)(game)
+            case (gain :: Nil, disc :: Nil) =>
+              // gain one, discard one
+              oneGainableOneDiscardable(gain, disc)(victim)(game)
+            case _ => throw new IllegalStateException("How could this ever happen?!")
+          }
+        }
+
+        // Discard any revealed non-treasure card
+        revealed.diff(treasures).foldLeft(gn)((state, card) => state.update(victim.discardedLens.modify(card +: _)))
+    }
+  }
+
+  private def onlyGainableTreasures(hd: Treasure, tl: List[Treasure])(victim: Player)(game: Game): Game = {
+    val updatedAttacker = p.discardedLens.modify(hd +: _)
+
+    val updatedVictim =
+      if (tl.nonEmpty)
+        victim.discardedLens.modify(tl.head +: _)
+      else victim
+
+    game.update(updatedAttacker).update(updatedVictim)
+  }
+
+  private def onlyDiscardableTreasures(hd: Treasure, tl: List[Treasure])(victim: Player)(game: Game): Game = {
+    val g2 = game.trash(hd)
+
+    if (tl.nonEmpty)
+      g2.update(victim.discardedLens.modify(tl.head +: _))
+    else g2
+  }
+
+  private def oneGainableOneDiscardable(gain: Treasure, disc: Treasure)(victim: Player)(game: Game): Game = {
+    val updatedAttacker = p.discardedLens.modify(gain +: _)
+    val updatedVictim = victim.discardedLens.modify(disc +: _)
+
+    game.update(updatedAttacker).update(updatedVictim)
   }
 }
 
