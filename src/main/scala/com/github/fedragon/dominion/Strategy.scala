@@ -8,8 +8,8 @@ trait CellarStrategy {
 }
 
 trait SpyStrategy {
-  def shouldSpyHolderDiscard(card: Card): Boolean
-  def shouldSpyVictimDiscard(card: Card): Boolean
+  def spyHolderDiscards(card: Card): Boolean
+  def spyVictimDiscards(card: Card): Boolean
 }
 
 trait ThiefStrategy {
@@ -24,8 +24,8 @@ class DefaultStrategy extends Strategy {
 
   def discardForCellar(cards: Deck): Deck = cards.filter(c => DiscardableForCellar.contains(c))
 
-  def shouldSpyHolderDiscard(card: Card) = false
-  def shouldSpyVictimDiscard(card: Card) = true
+  def spyHolderDiscards(card: Card) = false
+  def spyVictimDiscards(card: Card) = true
 
   def holderGainsRevealedTreasure(card: Card) = card == Silver || card == Gold
 }

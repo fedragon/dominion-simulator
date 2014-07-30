@@ -43,11 +43,11 @@ trait PlayerOps extends ThiefOps {
         // decides whether to discard it or not: if not discarded, the card goes back on top of the deck.
 
         // Draw 1 card, +1 action
-        val attacker = p.draws.actionsLens.modify(_ + 1).reveals(p.strategy.shouldSpyHolderDiscard)
+        val attacker = p.draws.actionsLens.modify(_ + 1).reveals(p.strategy.spyHolderDiscards)
         val g2 = g.update(attacker)
 
         // Reveal every victim's top card, maybe discard it
-        val ps = g2.victims(p).map(_.reveals(attacker.strategy.shouldSpyVictimDiscard))
+        val ps = g2.victims(p).map(_.reveals(attacker.strategy.spyVictimDiscards))
 
         ps.foldLeft(g2)((gn, pn) => gn.update(pn))
       case Thief =>

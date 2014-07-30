@@ -78,8 +78,8 @@ class CardsSpec extends UnitSpec {
 
   "Spy" should "translate to: +1 card, +1 action, every player reveals his top cards and maybe discards it, the attacker decides" in {
     class MyStrategy extends DefaultStrategy {
-      override def shouldSpyHolderDiscard(card: Card) = true
-      override def shouldSpyVictimDiscard(card: Card) = card === Copper
+      override def spyHolderDiscards(card: Card) = true
+      override def spyVictimDiscards(card: Card) = card === Copper
     }
 
     val subject = new Player("P", hand = Deck(Spy), deck = Deck(Estate, Gold), strategy = new MyStrategy)
