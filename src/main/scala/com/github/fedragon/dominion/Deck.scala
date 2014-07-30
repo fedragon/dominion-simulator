@@ -13,7 +13,7 @@ object Deck {
 
     def draw: Option[(Card, Deck)] = cards.headOption.map(hd => (hd, cards.tail))
 
-    def shuffle: Vector[Card] = Random.shuffle(cards)
+    def shuffle: Deck = Random.shuffle(cards)
 
     def pick(f: Card => Boolean): Option[(Card, Deck)] = {
       val index = cards.indexWhere(f)

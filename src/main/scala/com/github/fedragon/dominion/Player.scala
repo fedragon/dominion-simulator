@@ -1,6 +1,8 @@
 package com.github.fedragon.dominion
 
 import Deck._
+import org.slf4j.LoggerFactory
+
 import scalaz.Scalaz._
 
 case class Player(name: String,
@@ -12,6 +14,8 @@ case class Player(name: String,
 
   import Player._
   import monocle.syntax._
+
+  val Logger = LoggerFactory.getLogger(getClass)
 
   val handLens = this |-> _hand
   val deckLens = this |-> _deck
@@ -61,7 +65,9 @@ case class Player(name: String,
 
   def discard(card: Card): Player = {
     hand.pick(_ === card).fold(this) {
-      case (_, newHand) => handLens.set(newHand).discardedLens.modify(card +: _)
+      case (_, newHand) =>
+        Logger.info(s"$name discards ${card.name} from his hand")
+        handLens.set(newHand).discardedLens.modify(card +: _)
     }
   }
 
@@ -71,10 +77,14 @@ case class Player(name: String,
     }
   }
 
-  def discardHand: Player = handLens.set(EmptyDeck).discardedLens.modify(_ ++ hand)
+  def discardHand: Player = {
+    Logger.info(s"$name discards all cards from his hand")
+    handLens.set(EmptyDeck).discardedLens.modify(_ ++ hand)
+  }
 
   def draws: Player = {
     val (card, state) = revealFromDeck
+    Logger.info(s"$name draws ${card.name} from his deck to his hand")
     state.handLens.modify(card +: _)
   }
 
@@ -134,9 +144,13 @@ case class Player(name: String,
   def reveals(shouldDiscard: Card => Boolean) = {
     val (card, state) = revealFromDeck
 
-    if (shouldDiscard(card))
+    if (shouldDiscard(card)) {
+      Logger.info(s"$name discards ${card.name} as requested by the attacker")
       state.discardedLens.modify(card +: _)
-    else state.deckLens.modify(card +: _)
+    } else {
+      Logger.info(s"$name puts ${card.name} back on the top of his deck as requested by the attacker")
+      state.deckLens.modify(card +: _)
+    }
   }
 
   def revealsN(n: Int): (Deck, Player) = {
@@ -154,9 +168,11 @@ case class Player(name: String,
   private def revealFromDeck: (Card, Player) =
     deck.draw match {
       case Some((card, newDeck)) =>
+        Logger.info(s"$name reveals ${card.name} from the top of his deck")
         (card, deckLens.set(newDeck))
       case None =>
         val (card, newDeck) = (deck ++ discarded).shuffle.draw.get
+        Logger.info(s"$name reveals ${card.name} from the top of his deck")
         (card, discardedLens.set(EmptyDeck).deckLens.set(newDeck))
     }
 
