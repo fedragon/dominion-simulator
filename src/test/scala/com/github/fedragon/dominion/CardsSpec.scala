@@ -32,7 +32,7 @@ class CardsSpec extends UnitSpec {
     stateOne.turn shouldBe Turn(actions = 1, buys = 2, coins = Coins(1))
   }
 
-  "Militia" should "translate to: +2 coins, every other player discards until he is left with 3 cards in his hand" in {
+  "Militia" should "translate to: +2 coins, victims discard until they are left with 3 cards in their hand" in {
     val subject = Player("X", hand = Deck(Militia), deck = EmptyDeck)
     val other = Player("Y", hand = Deck(Smithy), deck = EmptyDeck)
     val another = Player("Z", hand = Deck(Copper, Market, Silver, Spy, Witch), deck = EmptyDeck)
@@ -46,7 +46,7 @@ class CardsSpec extends UnitSpec {
     gameOne.find(another).hand should contain theSameElementsAs Deck(Silver, Spy, Witch)
   }
 
-  "Mine" should "translate to: trash 1 treasure card and get 1 whose cost is +3" in {
+  "Mine" should "translate to: trash 1 Treasure and get 1 whose cost is +3" in {
     val subject = Player("X", hand = Deck(Mine, Copper), deck = EmptyDeck)
     val game = emptyGame.copy(players = Map(subject.name -> subject), supplyPiles = Map(Silver -> 1))
 
@@ -90,7 +90,7 @@ class CardsSpec extends UnitSpec {
     stateOne.deck shouldBe 'empty
   }
 
-  "Spy" should "translate to: +1 card, +1 action, every player reveals his top cards and maybe discards it, the attacker decides" in {
+  "Spy" should "translate to: +1 card, +1 action, everybody reveals his top cards and maybe discards it, the attacker decides" in {
     class MyStrategy extends DefaultStrategy {
       override def spyHolderDiscards(card: Card) = true
       override def spyVictimDiscards(card: Card) = card === Copper
@@ -134,7 +134,7 @@ class CardsSpec extends UnitSpec {
     gameOne.trashed.loneElement shouldBe Copper
   }
 
-  "Witch" should "translate to: +2 and +1 curse to all the other players" in {
+  "Witch" should "translate to: +2 and +1 curse to all the victims" in {
     val subject = Player("X", hand = Deck(Witch), deck = Deck(Copper, Copper))
     val other = Player("Y", hand = EmptyDeck, deck = EmptyDeck)
     val another = Player("Z", hand = EmptyDeck, deck = EmptyDeck)
