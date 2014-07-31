@@ -9,6 +9,19 @@ class CardsSpec extends UnitSpec {
 
   val emptyGame = Game(Map.empty, Map.empty, EmptyDeck)
 
+  "Bureaucrat" should "translate to: gain 1 Silver on top of your deck, victims reveal a Victory card and put it on top of their deck" in {
+    val subject = Player("X", hand = Deck(Bureaucrat), deck = EmptyDeck)
+    val other = Player("Y", hand = Deck(Copper, Market, Province), deck = Deck(Market))
+    val game = emptyGame.copy(players = Map(subject.name -> subject, other.name -> other), supplyPiles = Map(Silver -> 1))
+
+    val (stateOne, gameOne) = subject.plays(Bureaucrat)(game)
+
+    stateOne.deck.head shouldBe Silver
+    stateOne.discarded.loneElement shouldBe Bureaucrat
+
+    gameOne.find(other).deck.head shouldBe Province
+  }
+
   "Cellar" should "translate to: +1 action, discard N cards and draw N cards" in {
     val subject = Player("X", hand = Deck(Cellar, Province), deck = Deck(Copper))
     val game = emptyGame.copy(players = Map(subject.name -> subject))

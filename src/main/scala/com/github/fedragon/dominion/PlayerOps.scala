@@ -2,6 +2,7 @@ package com.github.fedragon.dominion
 
 import Deck._
 import KingdomCards._
+import TreasureCards.Silver
 import VictoryCards._
 
 import scalaz.Scalaz._
@@ -11,6 +12,19 @@ trait PlayerOps extends ThiefOps {
 
   def playAction(a: Action)(g: Game): Game =
     a match {
+      case Bureaucrat =>
+        // Gain 1 silver, victims reveal a Victory from their hand and put it on top of their deck
+        val g2 = g.pick(_ == Silver) match {
+          case Some((card, gn)) => g.update(self.deckLens.modify(card +: _))
+          case _ => g
+        }
+
+        g2.victims(self).foldLeft(g2) { (state, victim) =>
+          victim.hand.pick(c => c == Estate || c == Duchy || c == Province) match {
+            case Some((card, newHand)) => state.update(victim.deckLens.modify(card +: _))
+            case _ => state
+          }
+        }
       case Cellar =>
         // Discard N cards, draw N cards, +1 action
         val (discarded, newHand) = self.hand.partition(c => self.strategy.discardForCellar(self.hand).contains(c))
