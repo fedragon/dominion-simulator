@@ -21,6 +21,14 @@ trait PlayerOps extends ThiefOps {
       case Market =>
         // Draw 1 card, +1 action, +1 buy, +1 coin
         g.update(self.draws.gains(Turn(1, 1, Coins(1))))
+      case Militia =>
+        // +2 coins, every other player discards cards until they have 3 cards in their hand
+        val g2 = g.victims(self).foldLeft(g) { (gn, pn) =>
+          val toDiscard = pn.strategy.discardForMilitia(pn.hand)
+          gn.update(toDiscard.foldLeft(pn)((player, card) => player.discard(card)))
+        }
+
+        g2.update(self.gainsCoins(Coins(2)))
       case Mine =>
         // Trash 1 treasure card and get one whose cost is +3
         val g3 = for {

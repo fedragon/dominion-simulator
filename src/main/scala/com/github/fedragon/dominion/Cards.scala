@@ -6,6 +6,8 @@ object KingdomCards {
 
   case object Market extends Action("Market", cost = Coins(5))
 
+  case object Militia extends Action("Militia", cost = Coins(4)) with Attack
+
   case object Mine extends Action("Mine", cost = Coins(5))
 
   case object Moat extends Action("Moat", cost = Coins(2)) with Reaction

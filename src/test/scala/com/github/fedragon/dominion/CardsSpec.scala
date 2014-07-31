@@ -32,6 +32,20 @@ class CardsSpec extends UnitSpec {
     stateOne.turn shouldBe Turn(actions = 1, buys = 2, coins = Coins(1))
   }
 
+  "Militia" should "translate to: +2 coins, every other player discards until he is left with 3 cards in his hand" in {
+    val subject = Player("X", hand = Deck(Militia), deck = EmptyDeck)
+    val other = Player("Y", hand = Deck(Smithy), deck = EmptyDeck)
+    val another = Player("Z", hand = Deck(Copper, Market, Silver, Spy, Witch), deck = EmptyDeck)
+    val game = emptyGame.copy(players = Map(subject.name -> subject, other.name -> other, another.name -> another))
+
+    val (stateOne, gameOne) = subject.plays(Militia)(game)
+
+    stateOne.turn shouldBe Turn(actions = 0, buys = 1, coins = Coins(2))
+
+    gameOne.find(other).hand should contain theSameElementsAs Deck(Smithy)
+    gameOne.find(another).hand should contain theSameElementsAs Deck(Silver, Spy, Witch)
+  }
+
   "Mine" should "translate to: trash 1 treasure card and get 1 whose cost is +3" in {
     val subject = Player("X", hand = Deck(Mine, Copper), deck = EmptyDeck)
     val game = emptyGame.copy(players = Map(subject.name -> subject), supplyPiles = Map(Silver -> 1))

@@ -12,6 +12,10 @@ trait CellarStrategy {
   def discardForCellar(cards: Deck): Deck
 }
 
+trait MilitiaStrategy {
+  def discardForMilitia(cards: Deck): Deck
+}
+
 trait MineStrategy {
   def pickTreasureToTrash(hand: Deck): Option[Treasure]
 }
@@ -27,6 +31,7 @@ trait ThiefStrategy {
 
 trait Strategy extends TurnStrategy
 with CellarStrategy
+with MilitiaStrategy
 with MineStrategy
 with SpyStrategy
 with ThiefStrategy
@@ -40,6 +45,10 @@ class DefaultStrategy extends Strategy {
   val DiscardableForMilitia = Deck(Estate, Duchy, Province)
 
   override def discardForCellar(cards: Deck) = cards.filter(c => DiscardableForCellar.contains(c))
+
+  override def discardForMilitia(cards: Deck): Deck =
+    if (cards.size <= 3) EmptyDeck
+    else cards.take(cards.size - 3)
 
   override def holderGainsRevealedTreasure(card: Card) = card == Silver || card == Gold
 
