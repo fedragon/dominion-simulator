@@ -54,7 +54,7 @@ class CardsSpec extends UnitSpec {
     stateOne.deck shouldBe 'empty
   }
 
-  "Moat" should "nullify any attack on a player who has it in his hand" in {
+  it should "nullify any attack on a player who has it in his hand" in {
     val subject = Player("X", hand = Deck(Witch), deck = Deck(Copper, Copper))
     val other = Player("Y", hand = Deck(Moat), deck = EmptyDeck)
     val game = emptyGame.copy(players = Map(subject.name -> subject, other.name -> other))

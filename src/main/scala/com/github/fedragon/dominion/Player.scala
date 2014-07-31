@@ -1,7 +1,6 @@
 package com.github.fedragon.dominion
 
 import Deck._
-import com.github.fedragon.dominion.VictoryCards.Curse
 import org.slf4j.LoggerFactory
 
 import scalaz.Scalaz._
@@ -57,7 +56,6 @@ case class Player(name: String,
 
     val (p2, g2) = g.pick(_ === card).fold((p, g)) {
       case (_, gx) =>
-        // TODO change to allow logging
         val px = p.handLens.modify(card +: _).consumesBuy
         Logger.info(s"$name buys ${card.name} for ${cost.value} coins")
         px -> gx.update(px)
@@ -67,7 +65,7 @@ case class Player(name: String,
   }
 
   def coins: Coins =
-    remainingExtraCoins.get + handLens.get.foldLeft(Coins(0)) {
+    remainingExtraCoins.get + hand.foldLeft(Coins(0)) {
       (acc, card) => acc + (card match {
         case t: Treasure => t.value
         case _ => Coins(0)
@@ -118,12 +116,11 @@ case class Player(name: String,
   def playTurn(game: Game): Game = {
 
     def playActions(p: Player, g: Game): (Player, Game) = {
-      // TODO should be sorted according to the strategy
-      val actions = p.handLens.get.collect {
+      val actions = p.hand.collect {
         case Action(a) => a
       }
 
-      actions.foldLeft((p, g)) { (state, action) =>
+      strategy.selectNextActions(actions).foldLeft((p, g)) { (state, action) =>
         val (px, gx) = state
         if (px.remainingActions.get > 0)
           px.plays(action)(gx)
@@ -132,8 +129,7 @@ case class Player(name: String,
     }
 
     def playBuys(p: Player, g: Game): (Player, Game) = {
-      // TODO should be decided by the strategy
-      val preferredCards = g.supplyPiles.keys.filterNot(_ == Curse)
+      val preferredCards = p.strategy.makeGroceriesList(g.supplyPiles.keys.toVector)
 
       preferredCards.foldLeft((p, g)) { (state, card) =>
         val (px, gx) = state
@@ -193,7 +189,7 @@ case class Player(name: String,
       case Some((card, newDeck)) =>
         (card, deckLens.set(newDeck))
       case None =>
-        Logger.debug(s"$name is out of cards and shuffles his discarded cards")
+        Logger.debug(s"$name is out of cards and shuffles his discarded pile")
         val (card, newDeck) = discarded.shuffle.draw.get
         (card, discardedLens.set(EmptyDeck).deckLens.set(newDeck))
     }
@@ -263,7 +259,7 @@ trait TurnOps {
   }
 
   def gainsCoins(n: Coins): Player = {
-    Logger.info(s"$name gains $n coin(s)")
+    Logger.info(s"$name gains ${n.value} coin(s)")
     remainingExtraCoins.modify(_ + n)
   }
 
