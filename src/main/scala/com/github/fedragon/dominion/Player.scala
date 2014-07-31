@@ -11,7 +11,7 @@ case class Player(name: String,
                   discarded: Deck = EmptyDeck,
                   deck: Deck,
                   turn: Turn = Turn(actions = 1, buys = 1, coins = Coins(0)),
-                  strategy: Strategy = new DefaultStrategy) extends PlayerOps {
+                  strategy: Strategy = new DefaultStrategy) extends PlayerOps with TurnOps {
 
   import Player._
   import monocle.syntax._
@@ -23,66 +23,26 @@ case class Player(name: String,
   val discardedLens = this |-> _discarded
 
   val turnLens = this |-> _turn
-  val actionsLens = turnLens |-> _actions
-  val buysLens = turnLens |-> _buys
-  val extraCoinsLens = turnLens |-> _coins
-
-  def gains(t: Turn): Player = {
-    Logger.info(s"$name gains ${t.actions} action(s), ${t.buys} buy(s), and ${t.coins.value} coin(s)")
-    turnLens.modify(_ + t)
-  }
-
-  def gainsActions(n: Int): Player = {
-    Logger.info(s"$name gains $n action(s)")
-    actionsLens.modify(_ + n)
-  }
-
-  def gainsBuys(n: Int): Player = {
-    Logger.info(s"$name gains $n buy(s)")
-    buysLens.modify(_ + n)
-  }
-
-  def gainsCoins(n: Coins): Player = {
-    Logger.info(s"$name gains $n coin(s)")
-    extraCoinsLens.modify(_ + n)
-  }
-
-  def consumesAction: Player = {
-    Logger.info(s"$name consumes one of his actions")
-    actionsLens.modify(_ - 1)
-  }
-
-  def consumesBuy: Player = {
-    Logger.info(s"$name consumes one of his buys")
-    buysLens.modify(_ - 1)
-  }
-
-  def consumesCoins(n: Coins): Player = {
-    Logger.info(s"$name consumes $n extra coin(s)")
-    extraCoinsLens.modify(_ - n)
-  }
-
-  def usesAllExtraCoins: Player = {
-    Logger.info(s"$name uses all his extra coin(s)")
-    extraCoinsLens.set(Coins(0))
-  }
+  val remainingActions = turnLens |-> _actions
+  val remainingBuys = turnLens |-> _buys
+  val remainingExtraCoins = turnLens |-> _coins
 
   def buys(card: Card)(g: Game): (Player, Game) = {
     val cost = card.cost
 
-    Logger.info(s"$name wants to buy ${card.name}")
+    Logger.debug(s"$name wants to buy ${card.name}")
 
     if (cost > coins) {
-      Logger.info(s"$name cannot buy ${card.name} for ${cost.value} coins because he only has ${cost.value} coins")
+      Logger.debug(s"$name cannot buy ${card.name} for ${cost.value} coins because he only has ${cost.value} coins")
       return (this, g)
     }
 
     val p: Player =
-      if (extraCoinsLens.get >= cost) {
+      if (remainingExtraCoins.get >= cost) {
         Logger.info(s"$name buys ${card.name}")
         consumesCoins(cost)
       } else {
-        val diff = cost - extraCoinsLens.get
+        val diff = cost - remainingExtraCoins.get
         val (_, cardsToDiscard) = hand.onlyTreasures.foldLeft((diff, EmptyDeck)) { (state, treasure) =>
           val (remaining, cards) = state
 
@@ -90,7 +50,7 @@ case class Player(name: String,
           else (remaining - treasure.value, treasure +: cards)
         }
 
-        if (extraCoinsLens.get > Coins(0))
+        if (remainingExtraCoins.get > Coins(0))
           usesAllExtraCoins.discard(cardsToDiscard)
         else discard(cardsToDiscard)
       }
@@ -107,7 +67,7 @@ case class Player(name: String,
   }
 
   def coins: Coins =
-    extraCoinsLens.get + handLens.get.foldLeft(Coins(0)) {
+    remainingExtraCoins.get + handLens.get.foldLeft(Coins(0)) {
       (acc, card) => acc + (card match {
         case t: Treasure => t.value
         case _ => Coins(0)
@@ -142,7 +102,7 @@ case class Player(name: String,
   def drawsN(n: Int): Player = (0 until n).foldLeft(this)((p, _) => p.draws)
 
   def plays(a: Action)(g: Game): (Player, Game) = {
-    Logger.info(s"$name wants to play $a")
+    Logger.debug(s"$name wants to play $a")
     validateAction(a).fold((this, g)) { _ =>
       Logger.info(s"$name plays $a")
       // discard this action and update the turn, then play the action
@@ -165,7 +125,7 @@ case class Player(name: String,
 
       actions.foldLeft((p, g)) { (state, action) =>
         val (px, gx) = state
-        if (px.actionsLens.get > 0)
+        if (px.remainingActions.get > 0)
           px.plays(action)(gx)
         else (px, gx)
       }
@@ -178,7 +138,7 @@ case class Player(name: String,
       preferredCards.foldLeft((p, g)) { (state, card) =>
         val (px, gx) = state
 
-        if (px.buysLens.get > 0)
+        if (px.remainingBuys.get > 0)
           px.buys(card)(gx)
         else (px, gx)
       }
@@ -196,7 +156,7 @@ case class Player(name: String,
 
     Logger.info(s"$name completed his buy phase")
 
-    // Cleanup Phase: discard hand and draw next 5 cards, clean turn state
+    // Cleanup Phase: discard hand and draw next 5 cards, clean up turn state
     val newPlayer = g2.update(p2.discardHand.drawsN(5).turnLens.set(Turn(0, 0, Coins(0))))
     Logger.info(s"$name completed his turn")
     newPlayer
@@ -233,16 +193,17 @@ case class Player(name: String,
       case Some((card, newDeck)) =>
         (card, deckLens.set(newDeck))
       case None =>
-        val (card, newDeck) = (deck ++ discarded).shuffle.draw.get
+        Logger.debug(s"$name is out of cards and shuffles his discarded cards")
+        val (card, newDeck) = discarded.shuffle.draw.get
         (card, discardedLens.set(EmptyDeck).deckLens.set(newDeck))
     }
 
   private def validateAction(a: Action) = {
-    if (actionsLens.get > 0) {
-      Logger.info(s"$name can play ${a.name}")
+    if (remainingActions.get > 0) {
+      Logger.debug(s"$name can play ${a.name}")
       hand.find(_ === a)
     } else {
-      Logger.info(s"$name cannot play ${a.name} because he is out of actions")
+      Logger.debug(s"$name cannot play ${a.name} because he is out of actions")
       None
     }
   }
@@ -283,3 +244,46 @@ case class Turn(actions: Int, buys: Int, coins: Coins) {
   override def toString = s"{ actions: $actions, buys: $buys, extraCoins: ${coins.value} }"
 }
 
+trait TurnOps {
+  this: Player =>
+
+  def gains(t: Turn): Player = {
+    Logger.info(s"$name gains ${t.actions} action(s), ${t.buys} buy(s), and ${t.coins.value} coin(s)")
+    turnLens.modify(_ + t)
+  }
+
+  def gainsActions(n: Int): Player = {
+    Logger.info(s"$name gains $n action(s)")
+    remainingActions.modify(_ + n)
+  }
+
+  def gainsBuys(n: Int): Player = {
+    Logger.info(s"$name gains $n buy(s)")
+    remainingBuys.modify(_ + n)
+  }
+
+  def gainsCoins(n: Coins): Player = {
+    Logger.info(s"$name gains $n coin(s)")
+    remainingExtraCoins.modify(_ + n)
+  }
+
+  def consumesAction: Player = {
+    Logger.debug(s"$name consumes one of his actions")
+    remainingActions.modify(_ - 1)
+  }
+
+  def consumesBuy: Player = {
+    Logger.debug(s"$name consumes one of his buys")
+    remainingBuys.modify(_ - 1)
+  }
+
+  def consumesCoins(n: Coins): Player = {
+    Logger.info(s"$name consumes $n extra coin(s)")
+    remainingExtraCoins.modify(_ - n)
+  }
+
+  def usesAllExtraCoins: Player = {
+    Logger.info(s"$name uses all his extra coin(s)")
+    remainingExtraCoins.set(Coins(0))
+  }
+}

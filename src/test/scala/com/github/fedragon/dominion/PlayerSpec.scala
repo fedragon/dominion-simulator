@@ -125,7 +125,7 @@ class PlayerSpec extends UnitSpec {
 
     val (pStateOne, gStateOne) = subject.buys(Moat)(game)
 
-    pStateOne.buysLens.get shouldBe 1
+    pStateOne.remainingBuys.get shouldBe 1
     pStateOne.hand.loneElement shouldBe Copper
     gStateOne.supplyPiles.loneElement shouldBe (Moat -> 1)
   }
@@ -136,7 +136,7 @@ class PlayerSpec extends UnitSpec {
 
     val (pStateOne, gStateOne) = subject.buys(Moat)(game)
 
-    pStateOne.buysLens.get shouldBe 0
+    pStateOne.remainingBuys.get shouldBe 0
     pStateOne.hand.loneElement shouldBe Moat
     gStateOne.supplyPiles.loneElement shouldBe (Moat -> 0)
   }
@@ -147,8 +147,8 @@ class PlayerSpec extends UnitSpec {
 
     val (pStateOne, gStateOne) = subject.buys(Moat)(game)
 
-    pStateOne.buysLens.get shouldBe 0
-    pStateOne.extraCoinsLens.get shouldBe Coins(0)
+    pStateOne.remainingBuys.get shouldBe 0
+    pStateOne.remainingExtraCoins.get shouldBe Coins(0)
     pStateOne.hand.loneElement shouldBe Moat
     gStateOne.supplyPiles.loneElement shouldBe (Moat -> 0)
   }
@@ -165,18 +165,15 @@ class PlayerSpec extends UnitSpec {
     val startingHand = Deck(Copper, Copper, Estate, Estate, Estate)
     val startingDeck = Deck(Copper, Copper, Copper, Copper, Copper)
 
-    val subject = new Player("X",
-      hand = startingHand,
-      deck = startingDeck,
-      discarded = EmptyDeck)
+    val subject = new Player("X", hand = startingHand, deck = startingDeck, discarded = EmptyDeck)
     val g = Game(Map(subject.name -> subject), Map(Cellar -> 1), EmptyDeck)
 
     val gameOne = subject.playTurn(g)
     val stateOne = gameOne.find(subject)
 
-    stateOne.actionsLens.get shouldBe 0
-    stateOne.buysLens.get shouldBe 0
-    stateOne.extraCoinsLens.get shouldBe Coins(0)
+    stateOne.remainingActions.get shouldBe 0
+    stateOne.remainingBuys.get shouldBe 0
+    stateOne.remainingExtraCoins.get shouldBe Coins(0)
 
     stateOne.hand should contain theSameElementsAs startingDeck
     stateOne.deck shouldBe 'empty
