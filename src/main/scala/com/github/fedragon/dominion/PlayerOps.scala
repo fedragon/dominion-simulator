@@ -17,10 +17,10 @@ trait PlayerOps extends ThiefOps {
         p.Logger.info(s"${p.name} discards $discarded")
         val p2 = p.copy(hand = newHand, discarded = p.discarded ++ discarded)
 
-        g.update(p2.drawsN(discarded.size).actionsLens modify (_ + 1))
+        g.update(p2.drawsN(discarded.size).gainsActions(1))
       case Market =>
         // Draw 1 card, +1 action, +1 buy, +1 coin
-        g.update(p.draws.turnLens.modify(_ + Turn(1, 1, Coins(1))))
+        g.update(p.draws.gains(Turn(1, 1, Coins(1))))
       case Mine =>
         // Trash 1 treasure card and get one whose cost is +3
         val g3 = for {
@@ -45,7 +45,7 @@ trait PlayerOps extends ThiefOps {
         // decides whether to discard it or not: if not discarded, the card goes back on top of the deck.
 
         // Draw 1 card, +1 action
-        val attacker = p.draws.actionsLens.modify(_ + 1).reveals(p.strategy.spyHolderDiscards)
+        val attacker = p.draws.gainsActions(1).reveals(p.strategy.spyHolderDiscards)
         val g2 = g.update(attacker)
 
         // Reveal every victim's top card, maybe discard it

@@ -27,6 +27,46 @@ case class Player(name: String,
   val buysLens = turnLens |-> _buys
   val extraCoinsLens = turnLens |-> _coins
 
+  def gains(t: Turn): Player = {
+    Logger.info(s"$name gains ${t.actions} action(s), ${t.buys} buy(s), and ${t.coins.value} coin(s)")
+    turnLens.modify(_ + t)
+  }
+
+  def gainsActions(n: Int): Player = {
+    Logger.info(s"$name gains $n action(s)")
+    actionsLens.modify(_ + n)
+  }
+
+  def gainsBuys(n: Int): Player = {
+    Logger.info(s"$name gains $n buy(s)")
+    buysLens.modify(_ + n)
+  }
+
+  def gainsCoins(n: Coins): Player = {
+    Logger.info(s"$name gains $n coin(s)")
+    extraCoinsLens.modify(_ + n)
+  }
+
+  def consumesAction: Player = {
+    Logger.info(s"$name consumes one of his actions")
+    actionsLens.modify(_ - 1)
+  }
+
+  def consumesBuy: Player = {
+    Logger.info(s"$name consumes one of his buys")
+    buysLens.modify(_ - 1)
+  }
+
+  def consumesCoins(n: Coins): Player = {
+    Logger.info(s"$name consumes $n extra coin(s)")
+    extraCoinsLens.modify(_ - n)
+  }
+
+  def usesAllExtraCoins: Player = {
+    Logger.info(s"$name uses all his extra coin(s)")
+    extraCoinsLens.set(Coins(0))
+  }
+
   def buys(card: Card)(g: Game): (Player, Game) = {
     val cost = card.cost
 
@@ -39,8 +79,8 @@ case class Player(name: String,
 
     val p: Player =
       if (extraCoinsLens.get >= cost) {
-        Logger.info(s"$name uses ${cost.value} from his extra coins to buy ${card.name}")
-        extraCoinsLens.modify(_ - cost)
+        Logger.info(s"$name buys ${card.name}")
+        consumesCoins(cost)
       } else {
         val diff = cost - extraCoinsLens.get
         val (_, cardsToDiscard) = hand.onlyTreasures.foldLeft((diff, EmptyDeck)) { (state, treasure) =>
@@ -50,12 +90,15 @@ case class Player(name: String,
           else (remaining - treasure.value, treasure +: cards)
         }
 
-        extraCoinsLens.set(Coins(0)).discard(cardsToDiscard)
+        if (extraCoinsLens.get > Coins(0))
+          usesAllExtraCoins.discard(cardsToDiscard)
+        else discard(cardsToDiscard)
       }
 
     val (p2, g2) = g.pick(_ === card).fold((p, g)) {
       case (_, gx) =>
-        val px = p.handLens.modify(card +: _).buysLens.modify(_ - 1)
+        // TODO change to allow logging
+        val px = p.handLens.modify(card +: _).consumesBuy
         Logger.info(s"$name buys ${card.name} for ${cost.value} coins")
         px -> gx.update(px)
     }
@@ -100,18 +143,16 @@ case class Player(name: String,
 
   def plays(a: Action)(g: Game): (Player, Game) = {
     Logger.info(s"$name wants to play $a")
-    val result = validateAction(a).fold((this, g)) { _ =>
+    validateAction(a).fold((this, g)) { _ =>
       Logger.info(s"$name plays $a")
       // discard this action and update the turn, then play the action
       withPlayer(discard(a)) { p =>
-        withPlayer(p.actionsLens.modify(_ - 1)) { p2 =>
+        withPlayer(p.consumesAction) { p2 =>
           val game = p2.playAction(a)(g)
           (game.find(p2), game)
         }
       }
     }
-    Logger.info(s"$name played ${a.name}")
-    result
   }
 
   def playTurn(game: Game): Game = {
@@ -143,8 +184,10 @@ case class Player(name: String,
       }
     }
 
-    // Actions Phase
-    val (p1, g1) = playActions(this, game)
+    Logger.info(s"$name starts his turn")
+
+    // Actions Phase: reset player turn state
+    val (p1, g1) = playActions(gains(Turn(1, 1, Coins(0))), game)
 
     Logger.info(s"$name completed his action phase")
 
@@ -153,9 +196,9 @@ case class Player(name: String,
 
     Logger.info(s"$name completed his buy phase")
 
-    // Cleanup Phase: discard hand and draw next 5 cards
-    val newPlayer = g2.update(p2.discardHand.drawsN(5))
-    Logger.info(s"$name completed his turn: $newPlayer")
+    // Cleanup Phase: discard hand and draw next 5 cards, clean turn state
+    val newPlayer = g2.update(p2.discardHand.drawsN(5).turnLens.set(Turn(0, 0, Coins(0))))
+    Logger.info(s"$name completed his turn")
     newPlayer
   }
 
@@ -203,6 +246,13 @@ case class Player(name: String,
       None
     }
   }
+
+  override def toString = {
+    val h: String = hand.mkString(",")
+    val di: String = discarded.mkString(",")
+    val de: String = deck.mkString(",")
+    s"""$name: { hand: [$h], discarded: [$di], deck: [$de], turn: $turn }""".stripMargin
+  }
 }
 
 object Player {
@@ -229,5 +279,7 @@ case class Turn(actions: Int, buys: Int, coins: Coins) {
       buys = buys + that.buys,
       coins = coins + that.coins
     )
+
+  override def toString = s"{ actions: $actions, buys: $buys, extraCoins: ${coins.value} }"
 }
 

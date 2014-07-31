@@ -1,7 +1,6 @@
 package com.github.fedragon.dominion
 
 import Deck._
-
 import TreasureCards._
 import VictoryCards._
 
@@ -43,6 +42,13 @@ case class Game(players: Map[String, Player], supplyPiles: Map[Card, Int], trash
           case _ => false
         }
     }.values.toVector
+  }
+
+  override def toString = {
+    val ps = players.values.mkString(",")
+    val sps = supplyPiles.mkString(",")
+    val tr = trashed.mkString(",")
+    s"{ players: [$ps], supplyPiles: {$sps}, trashed: [$tr] }"
   }
 }
 

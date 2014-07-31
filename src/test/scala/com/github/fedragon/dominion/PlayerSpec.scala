@@ -155,18 +155,34 @@ class PlayerSpec extends UnitSpec {
 
   // TODO test buys when the preferred card is not available in the main deck
 
-  it should "be able to know all the victory cards in his hand, discarded pile or deck" in {
+  it should "be able to know all the victory cards in his hand, discarded pile, and deck" in {
     val subject = new Player("X", hand = Deck(Copper, Duchy, Silver), deck = Deck(Province), discarded = Deck(Estate))
 
-    subject.allVictories should contain only(Duchy, Estate, Province)
+    subject.allVictories should contain theSameElementsAs Deck(Duchy, Estate, Province)
   }
 
-  it should "be able to play his turn" in {
-    val subject = new Player("X",
-      hand = Deck(Market, Duchy, Copper, Copper, Copper),
-      deck = Deck(Province, Moat, Spy), discarded = EmptyDeck)
-    val g = Game(Map(subject.name -> subject), Map(Cellar -> 10, Curse -> 10, Witch -> 10), EmptyDeck)
+  it should "be able to play his starting turn and buy a card with his available coins" in {
+    val startingHand = Deck(Copper, Copper, Estate, Estate, Estate)
+    val startingDeck = Deck(Copper, Copper, Copper, Copper, Copper)
 
-    subject.allVictories should contain only(Duchy, Estate, Province)
+    val subject = new Player("X",
+      hand = startingHand,
+      deck = startingDeck,
+      discarded = EmptyDeck)
+    val g = Game(Map(subject.name -> subject), Map(Cellar -> 1), EmptyDeck)
+
+    val gameOne = subject.playTurn(g)
+    val stateOne = gameOne.find(subject)
+
+    stateOne.actionsLens.get shouldBe 0
+    stateOne.buysLens.get shouldBe 0
+    stateOne.extraCoinsLens.get shouldBe Coins(0)
+
+    stateOne.hand should contain theSameElementsAs startingDeck
+    stateOne.deck shouldBe 'empty
+    stateOne.discarded should contain theSameElementsAs Cellar +: startingHand
+
+    gameOne.supplyPiles should contain theSameElementsAs Map(Cellar -> 0)
+    gameOne.trashed shouldBe 'empty
   }
 }
