@@ -16,21 +16,21 @@ class PlayerSpec extends UnitSpec {
 
     val pStateTwo = pStateOne.draws
     pStateTwo.deck shouldBe 'empty
-    pStateTwo.hand should contain only(Copper, Estate)
+    pStateTwo.hand should contain theSameElementsAs Deck(Copper, Estate)
   }
 
   it should "be able to draw N cards from his deck" in {
     val pStateOne = new Player("X", deck = Deck(Copper, Estate)).drawsN(2)
 
     pStateOne.deck shouldBe 'empty
-    pStateOne.hand should contain only(Copper, Estate)
+    pStateOne.hand should contain theSameElementsAs Deck(Copper, Estate)
   }
 
   it should "be able to reveal and discard the top card in his deck" in {
     val subject = new Player("X", deck = Deck(Gold, Estate))
     val pStateOne = subject.reveals(_ => false)
 
-    pStateOne.deck should contain only(Gold, Estate)
+    pStateOne.deck should contain theSameElementsAs Deck(Gold, Estate)
     pStateOne.discarded shouldBe 'empty
 
     val pStateTwo = subject.reveals(_ => true)
