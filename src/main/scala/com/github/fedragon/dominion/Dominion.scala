@@ -3,10 +3,13 @@ package com.github.fedragon.dominion
 import Deck._
 import TreasureCards._
 import VictoryCards._
+import org.slf4j.LoggerFactory
 
 import scalaz.Scalaz._
 
 case class Game(players: Map[String, Player], supplyPiles: Map[Card, Int], trashed: Deck) {
+
+  val Logger = LoggerFactory.getLogger(getClass)
 
   lazy val curses: Int = supplyPiles(Curse)
 
@@ -34,11 +37,13 @@ case class Game(players: Map[String, Player], supplyPiles: Map[Card, Int], trash
 
   def update(p: Player): Game = copy(players = players.updated(p.name, p))
 
-  def victims(p: Player): Vector[Player] = {
+  def victims(attacker: Player): Vector[Player] = {
     players.filterNot {
       case (name, pn) =>
-        name === p.name || pn.hand.exists {
-          case _: (Action with Reaction) => true
+        name === attacker.name || pn.hand.exists {
+          case _: (Action with Reaction) =>
+            Logger.info(s"${attacker.name} reveals Moat and negates $name's attack")
+            true
           case _ => false
         }
     }.values.toVector
