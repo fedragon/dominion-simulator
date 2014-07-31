@@ -1,6 +1,7 @@
 package com.github.fedragon.dominion
 
 import Deck._
+import com.github.fedragon.dominion.VictoryCards.Curse
 import org.slf4j.LoggerFactory
 
 import scalaz.Scalaz._
@@ -131,7 +132,7 @@ case class Player(name: String,
 
     def playBuys(p: Player, g: Game): (Player, Game) = {
       // TODO should be decided by the strategy
-      val preferredCards = g.supplyPiles.keys
+      val preferredCards = g.supplyPiles.keys.filterNot(_ == Curse)
 
       preferredCards.foldLeft((p, g)) { (state, card) =>
         val (px, gx) = state
