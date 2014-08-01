@@ -32,6 +32,11 @@ trait PlayerOps extends ThiefOps {
         val p2 = self.copy(hand = newHand, discarded = self.discarded ++ discarded)
 
         g.update(p2.drawsN(discarded.size).gainsActions(1))
+      case CouncilRoom =>
+        val g2 = g.victims(self).foldLeft(g) { (state, victim) =>
+          state.update(victim.draws)
+        }
+        g2.update(self.drawsN(4).gainsBuys(1))
       case Market =>
         // Draw 1 card, +1 action, +1 buy, +1 coin
         g.update(self.draws.gains(Turn(1, 1, Coins(1))))

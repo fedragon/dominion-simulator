@@ -34,6 +34,19 @@ class CardsSpec extends UnitSpec {
     stateOne.turn shouldBe Turn(actions = 1, buys = 1, coins = Coins(0))
   }
 
+  "Council room" should "translate to: +4 cards, +1 buy, every other player draws one card" in {
+    val subject = Player("X", hand = Deck(CouncilRoom), deck = Deck(Copper, Market, Smithy, Witch))
+    val other = Player("Y", hand = EmptyDeck, deck = Deck(Moat))
+    val game = emptyGame.copy(players = Map(subject.name -> subject, other.name -> other))
+
+    val (stateOne, gameOne) = subject.plays(CouncilRoom)(game)
+
+    stateOne.hand should contain theSameElementsAs Deck(Copper, Market, Smithy, Witch)
+    stateOne.turn shouldBe Turn(actions = 0, buys = 2, coins = Coins(0))
+
+    gameOne.find(other).hand should contain theSameElementsAs Deck(Moat)
+  }
+
   "Gardens" should "translate to: +1 point for every 10 cards, rounded down" in {
     Estate.value() shouldBe 1
 
