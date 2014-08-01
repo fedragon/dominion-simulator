@@ -22,6 +22,8 @@ object KingdomCards {
 
   case object Thief extends Action("Thief", cost = Coins(4)) with Attack
 
+  case object ThroneRoom extends Action("ThroneRoom", cost = Coins(4))
+
   case object Witch extends Action("Witch", cost = Coins(5)) with Attack
 
 }

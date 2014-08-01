@@ -23,6 +23,10 @@ object Deck {
       else None
     }
 
+    def onlyActions: Actions = cards.collect {
+      case Action(t) => t
+    }
+
     def onlyTreasures: Treasures = cards.collect {
       case Treasure(t) => t
     }

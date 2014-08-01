@@ -33,6 +33,7 @@ trait PlayerOps extends ThiefOps {
 
         g.update(p2.drawsN(discarded.size).gainsActions(1))
       case CouncilRoom =>
+        // Draw 4 cards, +1 buy, every other player draws 1 card
         val g2 = g.victims(self).foldLeft(g) { (state, victim) =>
           state.update(victim.draws)
         }
@@ -84,6 +85,15 @@ trait PlayerOps extends ThiefOps {
         // them that you choose. You may gain any or all of these trashed cards. They discard the other revealed cards.
 
         playThief(g)
+      case ThroneRoom =>
+        // Choose an action in your hand and play it twice
+
+        self.strategy.selectActionForThroneRoom(self.hand).fold(g) { a =>
+          val g2 = g.update(self.discard(a))
+          Seq(a, a).foldLeft(g2) { (gn, _) =>
+            gn.find(self).playAction(a)(gn)
+          }
+        }
       case Witch =>
         // Draw 2 cards, give one curse to all other players
         val g2 = g.update(self.drawsN(2))

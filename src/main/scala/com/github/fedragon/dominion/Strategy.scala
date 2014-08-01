@@ -4,8 +4,8 @@ import TreasureCards.{Gold, Silver}
 import VictoryCards.{Curse, Duchy, Estate, Province}
 
 trait TurnStrategy {
-  def selectNextActions(hand: Actions): Actions
-  def makeGroceriesList(hand: Deck): Deck
+  def selectNextActions(cards: Actions): Actions
+  def makeGroceriesList(cards: Deck): Deck
 }
 
 trait CellarStrategy {
@@ -17,7 +17,7 @@ trait MilitiaStrategy {
 }
 
 trait MineStrategy {
-  def pickTreasureToTrash(hand: Deck): Option[Treasure]
+  def pickTreasureToTrash(cards: Deck): Option[Treasure]
 }
 
 trait SpyStrategy {
@@ -29,12 +29,17 @@ trait ThiefStrategy {
   def holderGainsRevealedTreasure(card: Card): Boolean
 }
 
+trait ThroneRoomStrategy {
+  def selectActionForThroneRoom(cards: Deck): Option[Action]
+}
+
 trait Strategy extends TurnStrategy
 with CellarStrategy
 with MilitiaStrategy
 with MineStrategy
 with SpyStrategy
 with ThiefStrategy
+with ThroneRoomStrategy
 
 class DefaultStrategy extends Strategy {
 
@@ -54,7 +59,9 @@ class DefaultStrategy extends Strategy {
 
   override def makeGroceriesList(cards: Deck) = cards.filterNot(_ == Curse)
 
-  override def pickTreasureToTrash(hand: Deck) = hand.onlyTreasures.headOption
+  override def pickTreasureToTrash(cards: Deck) = cards.onlyTreasures.headOption
+
+  override def selectActionForThroneRoom(cards: Deck): Option[Action] = cards.onlyActions.headOption
 
   override def selectNextActions(actions: Actions) = actions.sortWith(_.cost > _.cost)
 

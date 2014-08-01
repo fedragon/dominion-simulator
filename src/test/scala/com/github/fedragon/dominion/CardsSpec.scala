@@ -171,6 +171,17 @@ class CardsSpec extends UnitSpec {
     gameOne.trashed.loneElement shouldBe Copper
   }
 
+  "Throne room" should "translate to: choose an action from you hand and play it twice" in {
+    val subject = new Player("X", hand = Deck(Market, ThroneRoom), deck = Deck(Smithy, Thief, Witch))
+    val game = emptyGame.copy(players = Map(subject.name -> subject))
+
+    val (stateOne, _) = subject.plays(ThroneRoom)(game)
+
+    stateOne.hand should contain theSameElementsAs Deck(Smithy, Thief)
+    stateOne.discarded should contain theSameElementsAs Deck(Market, ThroneRoom)
+    stateOne.turn shouldBe Turn(2, 3, Coins(2))
+  }
+
   "Witch" should "translate to: +2 and +1 curse to all the victims" in {
     val subject = Player("X", hand = Deck(Witch), deck = Deck(Copper, Copper))
     val other = Player("Y", hand = EmptyDeck, deck = EmptyDeck)
