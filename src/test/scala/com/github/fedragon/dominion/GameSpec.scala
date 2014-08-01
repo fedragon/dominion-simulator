@@ -3,7 +3,7 @@ package com.github.fedragon.dominion
 import Deck._
 import KingdomCards.{Market, Moat, Witch}
 import TreasureCards.Copper
-import VictoryCards.Province
+import VictoryCards.{Gardens, Duchy, Estate, Province}
 
 class GameSpec extends UnitSpec {
 
@@ -21,6 +21,19 @@ class GameSpec extends UnitSpec {
     val stateOne = subject.copy(supplyPiles = Map(Copper -> 1, Moat -> 1))
 
     stateOne.ended shouldBe true
+  }
+
+  it should "calculate the final ranking" in {
+    val p1 = Player("P1", hand = Deck(Estate), deck = Deck(Province))
+    val p2 = Player("P2", hand = Deck(Duchy), deck = EmptyDeck)
+    val p3 = Player("P3", hand = Deck(Gardens, Province), deck = Deck.fillWith(20)(Copper))
+
+    val subject = Game(Map(p1.name -> p1, p2.name -> p2, p3.name -> p3), Map.empty, EmptyDeck)
+    val ranking = subject.calculateRanking.map {
+      case (player, points) => player.name -> points
+    }
+
+    ranking shouldBe Seq("P3" -> 8, "P1" -> 7, "P2" -> 3)
   }
 
   it should "find a player" in {

@@ -13,6 +13,20 @@ case class Game(players: Map[String, Player], supplyPiles: Map[Card, Int], trash
 
   lazy val curses: Int = supplyPiles(Curse)
 
+  def calculateRanking: Seq[(Player, Int)] = {
+    players.map {
+      case (name, player) =>
+        val nOfCards = player.allCards.size
+
+        val points = player.allVictories.map {
+          case FixedVictory(_, _, v) => v()
+          case FunctionVictory(_, _, f) => f(nOfCards)
+        }.sum
+
+        player -> points
+    }.toSeq.sortWith(_._2 > _._2)
+  }
+
   def drawCurse: Game = copy(supplyPiles = supplyPiles.updated(Curse, supplyPiles(Curse) - 1))
 
   val ended: Boolean =
@@ -83,7 +97,7 @@ object Dominion {
       }
     }
 
-    declareWinner(game)
+    game.calculateRanking.foreach(println)
   }
 
   private def createPlayer(name: String) =
@@ -94,19 +108,4 @@ object Dominion {
     TreasureCards(nOfPlayers) ++ VictoryCards
   }
 
-  private def declareWinner(game: Game): Unit = {
-    val ranking = game.players.map {
-      case (name, player) =>
-        val nOfCards = player.allCards.size
-
-        val points = player.allVictories.map {
-          case FixedVictory(_, _, v) => v()
-          case FunctionVictory(_, _, f) => f(nOfCards)
-        }.sum
-
-        name -> points
-    }.toSeq.sortWith(_._2 > _._2)
-
-    ranking.foreach(println)
-  }
 }
