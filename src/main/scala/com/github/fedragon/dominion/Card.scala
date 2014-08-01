@@ -36,15 +36,39 @@ object Treasure {
   }
 }
 
-case class CardValue(value: Int) extends AnyVal {
-  def +(that: CardValue) = CardValue(value + that.value)
+sealed trait CardValue
+
+case class FixedValue(value: Int) extends CardValue {
+  def apply(): Int = value
 }
 
-abstract class Victory(val name: String, val cost: Coins, val value: CardValue) extends Card
+case class FunctionValue(value: Int => Int) extends CardValue {
+  def apply(n: Int): Int = value(n)
+}
+
+abstract class Victory(name: String, cost: Coins) extends Card
 
 object Victory {
   def unapply(c: Card): Option[Victory] = c match {
     case v: Victory => Some(v)
+    case _ => None
+  }
+}
+
+abstract class FixedVictory(val name: String, val cost: Coins, val value: FixedValue) extends Victory(name, cost)
+
+object FixedVictory {
+  def unapply(c: Card): Option[(String, Coins, FixedValue)] = c match {
+    case v: FixedVictory => Some((v.name, v.cost, v.value))
+    case _ => None
+  }
+}
+
+abstract class FunctionVictory(val name: String, val cost: Coins, val value: FunctionValue) extends Victory(name, cost)
+
+object FunctionVictory {
+  def unapply(c: Card): Option[(String, Coins, FunctionValue)] = c match {
+    case v: FunctionVictory => Some((v.name, v.cost, v.value))
     case _ => None
   }
 }

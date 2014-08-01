@@ -34,6 +34,17 @@ class CardsSpec extends UnitSpec {
     stateOne.turn shouldBe Turn(actions = 1, buys = 1, coins = Coins(0))
   }
 
+  "Gardens" should "translate to: +1 point for every 10 cards, rounded down" in {
+    Estate.value() shouldBe 1
+
+    Gardens.value(5) shouldBe 0
+    Gardens.value(16) shouldBe 1
+    Gardens.value(30) shouldBe 3
+
+    (Estate.value() + Gardens.value(15)) shouldBe 2
+    (Gardens.value(30) + Gardens.value(5)) shouldBe 3
+  }
+
   "Market" should "translate to: +1 card, +1 action, +1 buy, +1 coin" in {
     val subject = Player("X", hand = Deck(Market), deck = Deck(Copper))
     val game = emptyGame.copy(players = Map(subject.name -> subject))
@@ -177,4 +188,5 @@ class CardsSpec extends UnitSpec {
     gameOne.find(other).deck shouldBe 'empty
     gameOne.find(another).deck shouldBe 'empty
   }
+
 }

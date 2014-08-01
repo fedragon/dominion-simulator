@@ -1,6 +1,7 @@
 package com.github.fedragon.dominion
 
 import Deck._
+import com.github.fedragon.dominion.VictoryCards.Gardens
 import org.slf4j.LoggerFactory
 
 import scalaz.Scalaz._
@@ -181,8 +182,9 @@ case class Player(name: String,
     }
   }
 
-  def allVictories: Victories =
-    hand.onlyVictories ++ discarded.onlyVictories ++ deck.onlyVictories
+  def allCards: Deck = hand ++ discarded ++ deck
+
+  def allVictories: Victories = hand.onlyVictories ++ discarded.onlyVictories ++ deck.onlyVictories
 
   private def drawFromDeck: (Card, Player) =
     deck.draw match {

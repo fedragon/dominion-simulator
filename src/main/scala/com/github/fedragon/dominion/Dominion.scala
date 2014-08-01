@@ -97,7 +97,14 @@ object Dominion {
   private def declareWinner(game: Game): Unit = {
     val ranking = game.players.map {
       case (name, player) =>
-        name -> player.allVictories.foldLeft(CardValue(0))(_ + _.value)
+        val nOfCards = player.allCards.size
+
+        val points = player.allVictories.map {
+          case FixedVictory(_, _, v) => v()
+          case FunctionVictory(_, _, f) => f(nOfCards)
+        }.sum
+
+        name -> points
     }.toSeq.sortWith(_._2 > _._2)
 
     ranking.foreach(println)

@@ -16,7 +16,6 @@ package object dominion {
 
   implicit val CardEqual: Equal[Card] = Equal.equalA
   implicit val CoinsEqual: Equal[Coins] = Equal.equalA
-  implicit val CardValueOrdering: Ordering[CardValue] = Ordering.by(_.value)
   implicit val CoinsOrdering: Ordering[Coins] = Ordering.by(_.value)
 }
 
