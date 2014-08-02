@@ -3,7 +3,7 @@ package com.github.fedragon.dominion
 import Deck._
 import KingdomCards.{Moat, Smithy, Spy}
 import TreasureCards.{Copper, Silver}
-import VictoryCards.{Duchy, Province}
+import VictoryCards.{Curse, Duchy, Province}
 
 class DeckSpec extends UnitSpec {
 
@@ -29,6 +29,17 @@ class DeckSpec extends UnitSpec {
       case Some((card, newDeck)) =>
         card shouldBe Province
         newDeck should contain theSameElementsAs Deck(Copper, Duchy, Moat, Silver, Smithy)
+      case _ => fail()
+    }
+  }
+
+  it should "return a number of cards, if available" in {
+    val deck = Deck(Curse, Curse, Province, Silver, Smithy)
+
+    deck.pickN(4)(_ == Curse) match {
+      case Some((cards, newDeck)) =>
+        cards should contain theSameElementsAs Deck(Curse, Curse)
+        newDeck should contain theSameElementsAs Deck(Province, Silver, Smithy)
       case _ => fail()
     }
   }

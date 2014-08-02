@@ -23,6 +23,17 @@ object Deck {
       else None
     }
 
+    def pickN(n: Int)(f: Card => Boolean): Option[(Deck, Deck)] = {
+      (0 until n).foldLeft(Option((EmptyDeck, cards))) { (state, _) =>
+        state.flatMap {
+          case (picked, remaining) =>
+            remaining.pick(f).collect {
+              case (card, others) => (card +: picked, others)
+            }
+        }.orElse(state)
+      }
+    }
+
     def onlyActions: Actions = cards.collect {
       case Action(t) => t
     }
