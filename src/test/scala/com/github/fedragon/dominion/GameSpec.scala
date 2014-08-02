@@ -56,6 +56,14 @@ class GameSpec extends UnitSpec {
     subject.pick(_ === Witch) shouldBe None
   }
 
+  it should "not allow a player to pick a card from a supply pile, if no longer available" in {
+    val subject = Game(Map.empty[String, Player], Map(Moat -> 0), EmptyDeck)
+
+    subject.pick(_ === Moat) shouldBe None
+
+    subject.pick(_ === Witch) shouldBe None
+  }
+
   it should "trash a card" in {
     val subject = Game(Map.empty[String, Player], Map.empty, EmptyDeck)
 

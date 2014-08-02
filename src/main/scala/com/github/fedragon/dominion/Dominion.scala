@@ -39,7 +39,7 @@ case class Game(players: Map[String, Player], supplyPiles: Map[Card, Int], trash
 
   def pick(f: Card => Boolean): Option[(Card, Game)] = {
     supplyPiles.find {
-      case (card, _) if f(card) => true
+      case (card, count) if f(card) && count > 0 => true
       case _ => false
     }.flatMap {
       case (card, count) =>
