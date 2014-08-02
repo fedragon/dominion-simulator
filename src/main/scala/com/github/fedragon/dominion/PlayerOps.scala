@@ -15,14 +15,22 @@ trait PlayerOps extends ThiefOps {
       case Bureaucrat =>
         // Gain 1 silver, victims reveal a Victory from their hand and put it on top of their deck
         val g2 = g.pick(_ == Silver) match {
-          case Some((card, gn)) => g.update(self.deckLens.modify(card +: _))
-          case _ => g
+          case Some((card, gn)) =>
+            self.Logger.info(s"${self.name} gains 1 Silver and puts it on top of his deck")
+            g.update(self.deckLens.modify(card +: _))
+          case _ =>
+            self.Logger.info(s"${self.name} cannot gain a Silver because they are no longer available")
+            g
         }
 
         g2.victims(self).foldLeft(g2) { (state, victim) =>
           victim.hand.pick(c => c == Estate || c == Duchy || c == Province) match {
-            case Some((card, newHand)) => state.update(victim.deckLens.modify(card +: _))
-            case _ => state
+            case Some((card, newHand)) =>
+              self.Logger.info(s"${self.name} reveals ${card.name} and puts it on top of his deck")
+              state.update(victim.deckLens.modify(card +: _))
+            case _ =>
+              self.Logger.info(s"${self.name} does not have any Victory card and reveals his hand")
+              state
           }
         }
       case Cellar =>
@@ -90,6 +98,7 @@ trait PlayerOps extends ThiefOps {
 
         self.strategy.selectActionForThroneRoom(self.hand).fold(g) { a =>
           val g2 = g.update(self.discard(a))
+          self.Logger.info(s"${self.name} decides to play twice ${a.name}")
           Seq(a, a).foldLeft(g2) { (gn, _) =>
             gn.find(self).playAction(a)(gn)
           }
