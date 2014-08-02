@@ -12,6 +12,10 @@ trait CellarStrategy {
   def discardForCellar(cards: Deck): Deck
 }
 
+trait FeastStrategy {
+  def selectCardForFeast(cards: Deck): Card
+}
+
 trait ChapelStrategy {
   def pickCardsToTrash(cards: Deck): Option[(Deck, Deck)]
 }
@@ -44,6 +48,7 @@ trait WorkshopStrategy {
 trait Strategy extends TurnStrategy
 with CellarStrategy
 with ChapelStrategy
+with FeastStrategy
 with MilitiaStrategy
 with MineStrategy
 with SpyStrategy
@@ -75,6 +80,8 @@ import scalaz.Scalaz._
   override def pickTreasureToTrash(cards: Deck) = cards.onlyTreasures.headOption
 
   override def selectActionForThroneRoom(cards: Deck): Option[Action] = cards.onlyActions.headOption
+
+  override def selectCardForFeast(cards: Deck): Card = cards.sortWith(_.cost > _.cost).head
 
   override def selectCardForWorkshop(cards: Deck): Card = cards.sortWith(_.cost > _.cost).head
 

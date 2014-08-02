@@ -55,6 +55,18 @@ trait PlayerOps extends ThiefOps {
           state.update(victim.draws)
         }
         g2.update(self.drawsN(4).gainsBuys(1))
+      case Feast =>
+        // Trash this card and gain one costing up to 5 coins
+
+        val cardForFeast = self.strategy.selectCardForFeast(g.availableCards)
+        // Take back the Feast that has just been discarded and trash it
+        val (feast, newDiscarded) = self.discarded.pick(_ == Feast).get
+        g.pick(_ == cardForFeast).fold(g) {
+          case (card, g2) =>
+            self.Logger.info(s"${self.name} trashes Feast")
+            self.Logger.info(s"${self.name} gains ${card.name}")
+            g2.trash(feast).update(self.discardedLens.set(card +: newDiscarded))
+        }
       case Laboratory =>
         // Draw 2 cards, +1 action
         g.update(self.drawsN(2).gainsActions(1))

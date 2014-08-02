@@ -61,6 +61,19 @@ class CardsSpec extends UnitSpec {
     gameOne.find(other).hand should contain theSameElementsAs Deck(Moat)
   }
 
+  "Feast" should "translate to: trash this card to gain one costing up to 5 coins" in {
+    val subject = Player("X", hand = Deck(Feast), deck = EmptyDeck)
+    val game = emptyGame.copy(players = Map(subject.name -> subject), supplyPiles = Map(Chapel -> 1, Witch -> 1))
+
+    val (stateOne, gameOne) = subject.plays(Feast)(game)
+
+    stateOne.hand shouldBe 'empty
+    stateOne.discarded.loneElement shouldBe Witch
+    stateOne.deck shouldBe 'empty
+
+    gameOne.trashed.loneElement shouldBe Feast
+  }
+
   "Gardens" should "translate to: +1 point for every 10 cards, rounded down" in {
     Estate.value() shouldBe 1
 
