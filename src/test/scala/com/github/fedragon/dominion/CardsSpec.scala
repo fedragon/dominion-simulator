@@ -160,6 +160,20 @@ class CardsSpec extends UnitSpec {
     otherOne.hand.loneElement shouldBe Moat
   }
 
+  "Moneylender" should "translate to: trash a Copper and gain +3 coins" in {
+    val subject = Player("X", hand = Deck(Copper, Moneylender), deck = EmptyDeck)
+    val game = emptyGame.copy(players = Map(subject.name -> subject))
+
+    val (stateOne, gameOne) = subject.plays(Moneylender)(game)
+
+    stateOne.hand shouldBe 'empty
+    stateOne.discarded.loneElement shouldBe Moneylender
+    stateOne.deck shouldBe 'empty
+    stateOne.turn shouldBe Turn(actions = 0, buys = 1, coins = Coins(3))
+
+    gameOne.trashed.loneElement shouldBe Copper
+  }
+
   "Smithy" should "translate to: +3 cards" in {
     val subject = Player("X", hand = Deck(Smithy), deck = Deck(Copper, Estate, Copper))
     val game = emptyGame.copy(players = Map(subject.name -> subject))

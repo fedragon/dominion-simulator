@@ -2,7 +2,7 @@ package com.github.fedragon.dominion
 
 import Deck._
 import KingdomCards._
-import TreasureCards.Silver
+import com.github.fedragon.dominion.TreasureCards.{Copper, Silver}
 import VictoryCards._
 
 import scalaz.Scalaz._
@@ -97,6 +97,14 @@ trait PlayerOps extends ThiefOps {
       case Moat =>
         // Draw 2 cards
         g.update(self.drawsN(2))
+      case Moneylender =>
+        // Trash a Copper and gain +3 coins
+
+        self.hand.pick(_ == Copper).fold(g) {
+          case (copper, newHand) =>
+            self.Logger.info(s"${self.name} trashes a Copper")
+            g.trash(copper).update(self.handLens.set(newHand).gainsCoins(Coins(3)))
+        }
       case Smithy =>
         // Draw 3 cards
         g.update(self.drawsN(3))
