@@ -213,6 +213,17 @@ class CardsSpec extends UnitSpec {
     stateOne.turn shouldBe Turn(2, 3, Coins(2))
   }
 
+  "Village" should "translate to: draw 1 card, +2 actions" in {
+    val subject = Player("X", hand = Deck(Village), deck = Deck(Smithy))
+    val game = emptyGame.copy(players = Map(subject.name -> subject))
+
+    val (stateOne, _) = subject.plays(Village)(game)
+
+    stateOne.hand.loneElement shouldBe Smithy
+    stateOne.discarded.loneElement shouldBe Village
+    stateOne.turn shouldBe Turn(actions = 2, buys = 1, coins = Coins(0))
+  }
+
   "Witch" should "translate to: +2 and +1 curse to all the victims" in {
     val subject = Player("X", hand = Deck(Witch), deck = Deck(Copper, Copper))
     val other = Player("Y", hand = EmptyDeck, deck = EmptyDeck)

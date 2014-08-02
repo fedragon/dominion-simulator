@@ -28,6 +28,8 @@ object KingdomCards {
 
   case object ThroneRoom extends Action("ThroneRoom", cost = Coins(4))
 
+  case object Village extends Action("Village", cost = Coins(3))
+
   case object Witch extends Action("Witch", cost = Coins(5)) with Attack
 
   case object Woodcutter extends Action("Woodcutter", cost = Coins(3))

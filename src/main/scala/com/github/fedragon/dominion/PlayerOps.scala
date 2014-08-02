@@ -115,6 +115,9 @@ trait PlayerOps extends ThiefOps {
             gn.find(self).playAction(a)(gn)
           }
         }
+      case Village =>
+        // Draw +1 card, +2 actions
+        g.update(self.draws.gainsActions(2))
       case Witch =>
         // Draw 2 cards, give one curse to all other players
         val g2 = g.update(self.drawsN(2))
