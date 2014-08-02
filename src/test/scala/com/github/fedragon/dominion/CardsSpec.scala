@@ -34,6 +34,19 @@ class CardsSpec extends UnitSpec {
     stateOne.turn shouldBe Turn(actions = 1, buys = 1, coins = Coins(0))
   }
 
+  "Chapel" should "translate to: trash up to 4 cards" in {
+    val subject = Player("X", hand = Deck(Chapel, Curse, Curse, Province), deck = EmptyDeck)
+    val game = emptyGame.copy(players = Map(subject.name -> subject))
+
+    val (stateOne, gameOne) = subject.plays(Chapel)(game)
+
+    stateOne.hand.loneElement shouldBe Province
+    stateOne.discarded.loneElement shouldBe Chapel
+    stateOne.deck shouldBe 'empty
+
+    gameOne.trashed should contain theSameElementsAs Deck(Curse, Curse)
+  }
+
   "Council room" should "translate to: +4 cards, +1 buy, every other player draws one card" in {
     val subject = Player("X", hand = Deck(CouncilRoom), deck = Deck(Copper, Market, Smithy, Witch))
     val other = Player("Y", hand = EmptyDeck, deck = Deck(Moat))

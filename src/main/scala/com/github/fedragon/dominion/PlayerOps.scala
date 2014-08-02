@@ -40,6 +40,15 @@ trait PlayerOps extends ThiefOps {
         val p2 = self.copy(hand = newHand, discarded = self.discarded ++ discarded)
 
         g.update(p2.drawsN(discarded.size).gainsActions(1))
+      case Chapel =>
+        // Trash up to 4 cards from the hand
+        self.strategy.pickCardsToTrash(self.hand).fold(g) {
+          case (picked, remaining) =>
+            picked.foldLeft(g.update(self.handLens.set(remaining))) { (state, card) =>
+              self.Logger.info(s"${self.name} trashes $card")
+              state.trash(card)
+            }
+        }
       case CouncilRoom =>
         // Draw 4 cards, +1 buy, every other player draws 1 card
         val g2 = g.victims(self).foldLeft(g) { (state, victim) =>

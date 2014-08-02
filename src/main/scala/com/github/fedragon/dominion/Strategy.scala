@@ -12,6 +12,10 @@ trait CellarStrategy {
   def discardForCellar(cards: Deck): Deck
 }
 
+trait ChapelStrategy {
+  def pickCardsToTrash(cards: Deck): Option[(Deck, Deck)]
+}
+
 trait MilitiaStrategy {
   def discardForMilitia(cards: Deck): Deck
 }
@@ -39,6 +43,7 @@ trait WorkshopStrategy {
 
 trait Strategy extends TurnStrategy
 with CellarStrategy
+with ChapelStrategy
 with MilitiaStrategy
 with MineStrategy
 with SpyStrategy
@@ -49,7 +54,8 @@ with WorkshopStrategy
 class DefaultStrategy extends Strategy {
 
   import Deck._
-  import scalaz.Scalaz._
+
+import scalaz.Scalaz._
 
   val DiscardableForCellar = Deck(Estate, Duchy, Province)
   val DiscardableForMilitia = Deck(Estate, Duchy, Province)
@@ -63,6 +69,8 @@ class DefaultStrategy extends Strategy {
   override def holderGainsRevealedTreasure(card: Card) = card == Silver || card == Gold
 
   override def makeGroceriesList(cards: Deck) = cards.filterNot(_ == Curse)
+
+  override def pickCardsToTrash(cards: Deck): Option[(Deck, Deck)] = cards.pickN(4)(_ == Curse)
 
   override def pickTreasureToTrash(cards: Deck) = cards.onlyTreasures.headOption
 
