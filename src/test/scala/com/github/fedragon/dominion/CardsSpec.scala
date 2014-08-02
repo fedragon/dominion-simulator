@@ -226,6 +226,16 @@ class CardsSpec extends UnitSpec {
     gameOne.find(another).deck shouldBe 'empty
   }
 
+  "Woodcutter" should "translate to: +1 buy, +2 coins" in {
+    val subject = Player("X", hand = Deck(Woodcutter), deck = EmptyDeck)
+    val game = emptyGame.copy(players = Map(subject.name -> subject))
+
+    val (stateOne, _) = subject.plays(Woodcutter)(game)
+
+    stateOne.hand shouldBe 'empty
+    stateOne.turn shouldBe Turn(actions = 0, buys = 2, coins = Coins(2))
+  }
+
   "Workshop" should "translate to: gain a card costing up to 4 coins" in {
     val subject = Player("X", hand = Deck(Workshop), deck = EmptyDeck)
     val game = emptyGame.copy(

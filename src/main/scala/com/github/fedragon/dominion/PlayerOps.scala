@@ -121,6 +121,9 @@ trait PlayerOps extends ThiefOps {
             gn.drawCurse.update(pn.deckLens.modify(Curse +: _))
           else gn
         }
+      case Woodcutter =>
+        // Gain +1 buy, +2 coins
+        g.update(self.gains(Turn(0, 1, Coins(2))))
       case Workshop =>
         // Gain a card costing up to 4 coins
         val cardForWorkshop = self.strategy.selectCardForWorkshop(g.availableCards)
