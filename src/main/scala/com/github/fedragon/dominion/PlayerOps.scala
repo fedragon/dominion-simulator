@@ -70,6 +70,9 @@ trait PlayerOps extends ThiefOps {
         }
 
         g3.getOrElse(g)
+      case Festival =>
+        // Draw +2 actions, +1 buy, +2 coins
+        g.update(self.gains(Turn(2, 1, Coins(2))))
       case Laboratory =>
         // Draw 2 cards, +1 action
         g.update(self.drawsN(2).gainsActions(1))

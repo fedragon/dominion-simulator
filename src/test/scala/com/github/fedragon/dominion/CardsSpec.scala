@@ -74,6 +74,18 @@ class CardsSpec extends UnitSpec {
     gameOne.trashed.loneElement shouldBe Feast
   }
 
+  "Festival" should "translate to: +2 actions, +1 buy, +2 coins" in {
+    val subject = Player("X", hand = Deck(Festival), deck = EmptyDeck)
+    val game = emptyGame.copy(players = Map(subject.name -> subject))
+
+    val (stateOne, _) = subject.plays(Festival)(game)
+
+    stateOne.hand shouldBe 'empty
+    stateOne.discarded.loneElement shouldBe Festival
+    stateOne.deck shouldBe 'empty
+    stateOne.turn shouldBe Turn(2, 2, Coins(2))
+  }
+
   "Gardens" should "translate to: +1 point for every 10 cards, rounded down" in {
     Estate.value() shouldBe 1
 

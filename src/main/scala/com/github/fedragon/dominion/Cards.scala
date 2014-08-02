@@ -12,6 +12,8 @@ object KingdomCards {
 
   case object Feast extends Action("Feast", cost = Coins(4))
 
+  case object Festival extends Action("Festival", cost = Coins(5))
+
   case object Laboratory extends Action("Laboratory", cost = Coins(5))
 
   case object Market extends Action("Market", cost = Coins(5))
