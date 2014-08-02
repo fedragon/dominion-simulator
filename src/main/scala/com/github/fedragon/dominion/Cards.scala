@@ -10,6 +10,8 @@ object KingdomCards {
 
   case object CouncilRoom extends Action("CouncilRoom", cost = Coins(5))
 
+  case object Laboratory extends Action("Laboratory", cost = Coins(5))
+
   case object Market extends Action("Market", cost = Coins(5))
 
   case object Militia extends Action("Militia", cost = Coins(4)) with Attack

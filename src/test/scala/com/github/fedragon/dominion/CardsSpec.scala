@@ -71,6 +71,18 @@ class CardsSpec extends UnitSpec {
     (Gardens.value(30) + Gardens.value(5)) shouldBe 3
   }
 
+  "Laboratory" should "translate to: +2 cards, +1 action" in {
+    val subject = Player("X", hand = Deck(Laboratory), deck = Deck(Province, Silver))
+    val game = emptyGame.copy(players = Map(subject.name -> subject))
+
+    val (stateOne, _) = subject.plays(Laboratory)(game)
+
+    stateOne.hand should contain theSameElementsAs Deck(Province, Silver)
+    stateOne.deck shouldBe 'empty
+    stateOne.discarded.loneElement shouldBe Laboratory
+    stateOne.turn shouldBe Turn(actions = 1, buys = 1, coins = Coins(0))
+  }
+
   "Market" should "translate to: +1 card, +1 action, +1 buy, +1 coin" in {
     val subject = Player("X", hand = Deck(Market), deck = Deck(Copper))
     val game = emptyGame.copy(players = Map(subject.name -> subject))

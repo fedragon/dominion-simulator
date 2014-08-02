@@ -55,6 +55,9 @@ trait PlayerOps extends ThiefOps {
           state.update(victim.draws)
         }
         g2.update(self.drawsN(4).gainsBuys(1))
+      case Laboratory =>
+        // Draw 2 cards, +1 action
+        g.update(self.drawsN(2).gainsActions(1))
       case Market =>
         // Draw 1 card, +1 action, +1 buy, +1 coin
         g.update(self.draws.gains(Turn(1, 1, Coins(1))))
