@@ -174,6 +174,18 @@ class CardsSpec extends UnitSpec {
     gameOne.trashed.loneElement shouldBe Copper
   }
 
+  "Remodel" should "translate to: trash a card from the hand and gain one that costs up to 2 coins more" in {
+    val subject = Player("X", hand = Deck(Copper, Remodel), deck = EmptyDeck)
+    val game = emptyGame.copy(players = Map(subject.name -> subject), supplyPiles = Map(Chapel -> 1))
+
+    val (stateOne, gameOne) = subject.plays(Remodel)(game)
+
+    stateOne.hand shouldBe 'empty
+    stateOne.discarded should contain theSameElementsAs Deck(Remodel, Chapel)
+    stateOne.deck shouldBe 'empty
+
+    gameOne.trashed.loneElement shouldBe Copper
+  }
   "Smithy" should "translate to: +3 cards" in {
     val subject = Player("X", hand = Deck(Smithy), deck = Deck(Copper, Estate, Copper))
     val game = emptyGame.copy(players = Map(subject.name -> subject))

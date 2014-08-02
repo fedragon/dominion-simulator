@@ -99,12 +99,26 @@ trait PlayerOps extends ThiefOps {
         g.update(self.drawsN(2))
       case Moneylender =>
         // Trash a Copper and gain +3 coins
-
         self.hand.pick(_ == Copper).fold(g) {
           case (copper, newHand) =>
             self.Logger.info(s"${self.name} trashes a Copper")
             g.trash(copper).update(self.handLens.set(newHand).gainsCoins(Coins(3)))
         }
+      case Remodel =>
+        // Trash a card and gain one that costs up to 2 coins more
+        val g3 = for {
+          (cardToTrash, newHand) <- self.strategy.pickCardToTrash(self.hand)
+          _ = self.Logger.debug(s"${self.name} wants to trash ${cardToTrash.name}")
+          cardToGain <- self.strategy.pickCardToGain(g.availableCards)(cardToTrash.cost)
+          _ = self.Logger.debug(s"${self.name} wants to gain ${cardToGain.name}")
+          (card, g2) <- g.pick(_ == cardToGain)
+          p = self.handLens.set(newHand).discardedLens.modify(card +: _)
+        } yield {
+          self.Logger.info(s"${self.name} trashes ${cardToTrash.name} and gains ${card.name}")
+          g2.trash(cardToTrash).update(p)
+        }
+
+        g3.getOrElse(g)
       case Smithy =>
         // Draw 3 cards
         g.update(self.drawsN(3))

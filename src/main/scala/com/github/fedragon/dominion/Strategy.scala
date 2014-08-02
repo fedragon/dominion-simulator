@@ -1,6 +1,6 @@
 package com.github.fedragon.dominion
 
-import TreasureCards.{Gold, Silver}
+import TreasureCards.{Copper, Gold, Silver}
 import VictoryCards.{Curse, Duchy, Estate, Province}
 
 trait TurnStrategy {
@@ -28,6 +28,11 @@ trait MineStrategy {
   def pickTreasureToTrash(cards: Deck): Option[Treasure]
 }
 
+trait RemodelStrategy {
+  def pickCardToGain(cards: Deck)(cost: Coins): Option[Card]
+  def pickCardToTrash(cards: Deck): Option[(Card, Deck)]
+}
+
 trait SpyStrategy {
   def spyHolderDiscards(card: Card): Boolean
   def spyVictimDiscards(card: Card): Boolean
@@ -51,6 +56,7 @@ with ChapelStrategy
 with FeastStrategy
 with MilitiaStrategy
 with MineStrategy
+with RemodelStrategy
 with SpyStrategy
 with ThiefStrategy
 with ThroneRoomStrategy
@@ -60,7 +66,7 @@ class DefaultStrategy extends Strategy {
 
   import Deck._
 
-import scalaz.Scalaz._
+  import scalaz.Scalaz._
 
   val DiscardableForCellar = Deck(Estate, Duchy, Province)
   val DiscardableForMilitia = Deck(Estate, Duchy, Province)
@@ -74,6 +80,10 @@ import scalaz.Scalaz._
   override def holderGainsRevealedTreasure(card: Card) = card == Silver || card == Gold
 
   override def makeGroceriesList(cards: Deck) = cards.filterNot(_ == Curse)
+
+  override def pickCardToGain(cards: Deck)(cost: Coins): Option[Card] =
+    cards.sortWith(_.cost > _.cost).filterNot(_.cost > cost + Coins(2)).headOption
+  override def pickCardToTrash(cards: Deck): Option[(Card, Deck)] = cards.pick(_ == Copper)
 
   override def pickCardsToTrash(cards: Deck): Option[(Deck, Deck)] = cards.pickN(4)(_ == Curse)
 

@@ -24,6 +24,8 @@ object KingdomCards {
 
   case object Moneylender extends Action("Moneylender", cost = Coins(4))
 
+  case object Remodel extends Action("Remodel", cost = Coins(4))
+
   case object Smithy extends Action("Smithy", cost = Coins(4))
 
   case object Spy extends Action("Spy", cost = Coins(4)) with Attack
