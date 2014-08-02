@@ -55,6 +55,7 @@ class CardsSpec extends UnitSpec {
     val (stateOne, gameOne) = subject.plays(CouncilRoom)(game)
 
     stateOne.hand should contain theSameElementsAs Deck(Copper, Market, Smithy, Witch)
+    stateOne.discarded.loneElement shouldBe CouncilRoom
     stateOne.turn shouldBe Turn(actions = 0, buys = 2, coins = Coins(0))
 
     gameOne.find(other).hand should contain theSameElementsAs Deck(Moat)
@@ -91,6 +92,7 @@ class CardsSpec extends UnitSpec {
 
     stateOne.hand.loneElement shouldBe Copper
     stateOne.deck shouldBe 'empty
+    stateOne.discarded.loneElement shouldBe Market
     stateOne.turn shouldBe Turn(actions = 1, buys = 2, coins = Coins(1))
   }
 
@@ -102,6 +104,7 @@ class CardsSpec extends UnitSpec {
 
     val (stateOne, gameOne) = subject.plays(Militia)(game)
 
+    stateOne.discarded.loneElement shouldBe Militia
     stateOne.turn shouldBe Turn(actions = 0, buys = 1, coins = Coins(2))
 
     gameOne.find(other).hand should contain theSameElementsAs Deck(Smithy)
@@ -129,6 +132,7 @@ class CardsSpec extends UnitSpec {
 
     stateOne.hand.size shouldBe 2
     stateOne.deck shouldBe 'empty
+    stateOne.discarded.loneElement shouldBe Moat
   }
 
   it should "nullify any attack on a player who has it in his hand" in {
@@ -151,6 +155,7 @@ class CardsSpec extends UnitSpec {
 
     stateOne.hand.size shouldBe 3
     stateOne.deck shouldBe 'empty
+    stateOne.discarded.loneElement shouldBe Smithy
   }
 
   "Spy" should "translate to: +1 card, +1 action, everybody reveals his top cards and maybe discards it, the attacker decides" in {
@@ -220,6 +225,7 @@ class CardsSpec extends UnitSpec {
 
     stateOne.hand.size shouldBe 2
     stateOne.deck shouldBe 'empty
+    stateOne.discarded.loneElement shouldBe Witch
 
     gameOne.find(other).deck.loneElement shouldBe Curse
     gameOne.find(another).deck.loneElement shouldBe Curse
@@ -246,6 +252,7 @@ class CardsSpec extends UnitSpec {
     val (stateOne, _) = subject.plays(Woodcutter)(game)
 
     stateOne.hand shouldBe 'empty
+    stateOne.discarded.loneElement shouldBe Woodcutter
     stateOne.turn shouldBe Turn(actions = 0, buys = 2, coins = Coins(2))
   }
 
