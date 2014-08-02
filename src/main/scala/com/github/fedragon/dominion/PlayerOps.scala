@@ -2,7 +2,7 @@ package com.github.fedragon.dominion
 
 import Deck._
 import KingdomCards._
-import com.github.fedragon.dominion.TreasureCards.{Copper, Silver}
+import TreasureCards.{Copper, Silver}
 import VictoryCards._
 
 import scalaz.Scalaz._
@@ -14,41 +14,43 @@ trait PlayerOps extends ThiefOps {
     a match {
       case Bureaucrat =>
         // Gain 1 silver, victims reveal a Victory from their hand and put it on top of their deck
-        val g2 = g.pick(_ == Silver) match {
-          case Some((card, gn)) =>
-            self.Logger.info(s"${self.name} gains 1 Silver and puts it on top of his deck")
-            g.update(self.deckLens.modify(card +: _))
-          case _ =>
-            self.Logger.info(s"${self.name} cannot gain a Silver because they are no longer available")
-            g
-        }
-
-        g2.victims(self).foldLeft(g2) { (state, victim) =>
-          victim.hand.pick(c => c == Estate || c == Duchy || c == Province) match {
-            case Some((card, newHand)) =>
-              self.Logger.info(s"${self.name} reveals ${card.name} and puts it on top of his deck")
-              state.update(victim.deckLens.modify(card +: _))
-            case _ =>
-              self.Logger.info(s"${self.name} does not have any Victory card and reveals his hand")
-              state
+        val gn = for {
+          (card, g2) <- g.pick(_ == Silver)
+          _ = self.Logger.info(s"${self.name} gains 1 Silver and puts it on top of his deck")
+          g3 = g2.update(self.deckLens.modify(card +: _))
+          victims = g3.victims(self)
+        } yield {
+          victims.foldLeft(g3) { (state, v) =>
+            v.hand.pick(c => c == Estate || c == Duchy || c == Province) match {
+              case Some((c, newHand)) =>
+                self.Logger.info(s"${self.name} reveals ${c.name} and puts it on top of his deck")
+                state.update(v.deckLens.modify(c +: _))
+              case _ =>
+                self.Logger.info(s"${self.name} does not have any Victory card and reveals his hand")
+                state
+            }
           }
         }
+        gn.getOrElse(g)
       case Cellar =>
         // Discard N cards, draw N cards, +1 action
         val (discarded, newHand) = self.hand.partition(c => self.strategy.discardForCellar(self.hand).contains(c))
         self.Logger.info(s"${self.name} discards $discarded")
-        val p2 = self.copy(hand = newHand, discarded = self.discarded ++ discarded)
+        val p2 = self.handLens.set(newHand).discardedLens.modify(discarded ++ _)
 
         g.update(p2.drawsN(discarded.size).gainsActions(1))
       case Chapel =>
         // Trash up to 4 cards from the hand
-        self.strategy.pickCardsToTrash(self.hand).fold(g) {
-          case (picked, remaining) =>
-            picked.foldLeft(g.update(self.handLens.set(remaining))) { (state, card) =>
-              self.Logger.info(s"${self.name} trashes $card")
-              state.trash(card)
-            }
+        val g3 = for {
+          (picked, remaining) <- self.strategy.pickCardsToTrash(self.hand)
+          g2 = g.update(self.handLens.set(remaining))
+        } yield {
+          picked.foldLeft(g2) { (state, card) =>
+            self.Logger.info(s"${self.name} trashes $card")
+            state.trash(card)
+          }
         }
+        g3.getOrElse(g)
       case CouncilRoom =>
         // Draw 4 cards, +1 buy, every other player draws 1 card
         val g2 = g.victims(self).foldLeft(g) { (state, victim) =>
@@ -57,16 +59,17 @@ trait PlayerOps extends ThiefOps {
         g2.update(self.drawsN(4).gainsBuys(1))
       case Feast =>
         // Trash this card and gain one costing up to 5 coins
-
-        val cardForFeast = self.strategy.selectCardForFeast(g.availableCards)
-        // Take back the Feast that has just been discarded and trash it
-        val (feast, newDiscarded) = self.discarded.pick(_ == Feast).get
-        g.pick(_ == cardForFeast).fold(g) {
-          case (card, g2) =>
-            self.Logger.info(s"${self.name} trashes Feast")
-            self.Logger.info(s"${self.name} gains ${card.name}")
-            g2.trash(feast).update(self.discardedLens.set(card +: newDiscarded))
+        val g3 = for {
+          (feast, newDiscarded) <- self.discarded.pick(_ == Feast)
+          cardForFeast = self.strategy.selectCardForFeast(g.availableCards)
+          (card, g2) <- g.pick(_ == cardForFeast)
+        } yield {
+          self.Logger.info(s"${self.name} trashes Feast")
+          self.Logger.info(s"${self.name} gains ${card.name}")
+          g2.trash(feast).update(self.discardedLens.set(card +: newDiscarded))
         }
+
+        g3.getOrElse(g)
       case Laboratory =>
         // Draw 2 cards, +1 action
         g.update(self.drawsN(2).gainsActions(1))
@@ -74,7 +77,7 @@ trait PlayerOps extends ThiefOps {
         // Draw 1 card, +1 action, +1 buy, +1 coin
         g.update(self.draws.gains(Turn(1, 1, Coins(1))))
       case Militia =>
-        // +2 coins, every other player discards cards until they have 3 cards in their hand
+        // Gain +2 coins, every other player discards cards until they have 3 cards in their hand
         val g2 = g.victims(self).foldLeft(g) { (gn, pn) =>
           val toDiscard = pn.strategy.discardForMilitia(pn.hand)
           gn.update(toDiscard.foldLeft(pn)((player, card) => player.discard(card)))
@@ -137,11 +140,9 @@ trait PlayerOps extends ThiefOps {
       case Thief =>
         // Any other player reveals the top 2 cards from his deck: if they revealed any Treasure card, they trash one of
         // them that you choose. You may gain any or all of these trashed cards. They discard the other revealed cards.
-
         playThief(g)
       case ThroneRoom =>
         // Choose an action in your hand and play it twice
-
         self.strategy.selectActionForThroneRoom(self.hand).fold(g) { a =>
           val g2 = g.update(self.discard(a))
           self.Logger.info(s"${self.name} decides to play twice ${a.name}")
