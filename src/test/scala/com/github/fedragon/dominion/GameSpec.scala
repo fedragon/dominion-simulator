@@ -3,7 +3,7 @@ package com.github.fedragon.dominion
 import Deck._
 import KingdomCards.{Market, Moat, Witch}
 import TreasureCards.Copper
-import VictoryCards.{Gardens, Duchy, Estate, Province}
+import com.github.fedragon.dominion.VictoryCards._
 
 class GameSpec extends UnitSpec {
 
@@ -89,5 +89,10 @@ class GameSpec extends UnitSpec {
     subject.victims(p1).loneElement shouldBe p3
   }
 
+  it should "return the available cards" in {
+    val subject = Game(Map.empty, Map(Curse -> 10, Moat -> 3, Witch -> 0), EmptyDeck)
+
+    subject.availableCards shouldBe Deck(Moat)
+  }
 }
 

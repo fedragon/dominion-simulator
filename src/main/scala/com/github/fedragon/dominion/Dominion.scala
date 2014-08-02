@@ -13,6 +13,10 @@ case class Game(players: Map[String, Player], supplyPiles: Map[Card, Int], trash
 
   lazy val curses: Int = supplyPiles(Curse)
 
+  val availableCards: Deck = supplyPiles.collect {
+    case (card, count) if card =/= Curse && count > 0 => card
+  }.toVector
+
   def calculateRanking: Seq[(Player, Int)] = {
     players.map {
       case (name, player) =>
