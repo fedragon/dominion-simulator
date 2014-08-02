@@ -73,12 +73,12 @@ trait PlayerOps extends ThiefOps {
         // Trash 1 treasure card and get one whose cost is +3
         val g3 = for {
           treasure <- self.strategy.pickTreasureToTrash(self.hand)
+          (_, newHand) <- self.hand.pick(_ == treasure)
+          p = self.handLens.set(newHand)
           (newTreasure, g2) <- g.trash(treasure).pick(treasureByCost(treasure.cost + Coins(3)))
         } yield {
           self.Logger.info(s"${self.name} trashes ${treasure.name} and gains ${newTreasure.name}")
-          g2.update(withPlayer(self.discard(treasure)) {
-            _.handLens.modify(newTreasure +: _)
-          })
+          g2.update(p.handLens.modify(newTreasure +: _))
         }
 
         g3.getOrElse(g)

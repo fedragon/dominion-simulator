@@ -116,6 +116,7 @@ class CardsSpec extends UnitSpec {
 
     stateOne.hand.loneElement shouldBe Silver
     stateOne.deck shouldBe 'empty
+    stateOne.discarded.loneElement shouldBe Mine
 
     gameOne.trashed.loneElement shouldBe Copper
   }
