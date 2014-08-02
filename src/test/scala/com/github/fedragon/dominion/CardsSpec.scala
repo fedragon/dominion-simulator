@@ -213,4 +213,18 @@ class CardsSpec extends UnitSpec {
     gameOne.find(another).deck shouldBe 'empty
   }
 
+  "Workshop" should "translate to: gain a card costing up to 4 coins" in {
+    val subject = Player("X", hand = Deck(Workshop), deck = EmptyDeck)
+    val game = emptyGame.copy(
+      players = Map(subject.name -> subject),
+      supplyPiles = Map(Smithy -> 2, Curse -> 5))
+
+    val (stateOne, gameOne) = subject.plays(Workshop)(game)
+
+    stateOne.hand shouldBe 'empty
+    stateOne.discarded should contain theSameElementsAs Deck(Workshop, Smithy)
+
+    gameOne.supplyPiles(Smithy) shouldBe 1
+    gameOne.supplyPiles(Curse) shouldBe 5
+  }
 }

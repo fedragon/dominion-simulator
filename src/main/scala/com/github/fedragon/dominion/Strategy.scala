@@ -33,6 +33,10 @@ trait ThroneRoomStrategy {
   def selectActionForThroneRoom(cards: Deck): Option[Action]
 }
 
+trait WorkshopStrategy {
+  def selectCardForWorkshop(cards: Deck): Card
+}
+
 trait Strategy extends TurnStrategy
 with CellarStrategy
 with MilitiaStrategy
@@ -40,6 +44,7 @@ with MineStrategy
 with SpyStrategy
 with ThiefStrategy
 with ThroneRoomStrategy
+with WorkshopStrategy
 
 class DefaultStrategy extends Strategy {
 
@@ -62,6 +67,8 @@ class DefaultStrategy extends Strategy {
   override def pickTreasureToTrash(cards: Deck) = cards.onlyTreasures.headOption
 
   override def selectActionForThroneRoom(cards: Deck): Option[Action] = cards.onlyActions.headOption
+
+  override def selectCardForWorkshop(cards: Deck): Card = cards.sortWith(_.cost > _.cost).head
 
   override def selectNextActions(actions: Actions) = actions.sortWith(_.cost > _.cost)
 

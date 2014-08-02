@@ -103,6 +103,14 @@ trait PlayerOps extends ThiefOps {
             gn.drawCurse.update(pn.deckLens.modify(Curse +: _))
           else gn
         }
+      case Workshop =>
+        // Gain a card costing up to 4 coins
+        val cardForWorkshop = self.strategy.selectCardForWorkshop(g.availableCards)
+        g.pick(_ == cardForWorkshop).fold(g) {
+          case (card, g2) =>
+            self.Logger.info(s"${self.name} gains ${card.name}")
+            g2.update(self.discardedLens.modify(card +: _))
+        }
       case other =>
         throw new UnsupportedOperationException(s"Action not supported: $other")
     }
