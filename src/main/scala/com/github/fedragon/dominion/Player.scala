@@ -50,7 +50,7 @@ case class Player(name: String,
         }
 
         if (remainingExtraCoins.get > Coins(0))
-          usesAllExtraCoins.discard(cardsToDiscard)
+          consumesAllCoins.discard(cardsToDiscard)
         else discard(cardsToDiscard)
       }
 
@@ -129,7 +129,7 @@ case class Player(name: String,
     }
 
     def playBuys(p: Player, g: Game): (Player, Game) = {
-      val preferredCards = p.strategy.makeGroceriesList(g.supplyPiles.keys.toVector)
+      val preferredCards = p.strategy.makeGroceriesList(g.availableCards)
 
       preferredCards.foldLeft((p, g)) { (state, card) =>
         val (px, gx) = state
@@ -279,7 +279,7 @@ trait TurnOps {
     remainingExtraCoins.modify(_ - n)
   }
 
-  def usesAllExtraCoins: Player = {
+  def consumesAllCoins: Player = {
     Logger.info(s"$name uses all his extra coin(s)")
     remainingExtraCoins.set(Coins(0))
   }
