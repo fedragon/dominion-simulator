@@ -3,7 +3,7 @@ package com.github.fedragon.dominion
 import Deck._
 import ActionCards.{Market, Moat, Witch}
 import TreasureCards.Copper
-import com.github.fedragon.dominion.VictoryCards._
+import VictoryCards._
 
 class GameSpec extends UnitSpec {
 

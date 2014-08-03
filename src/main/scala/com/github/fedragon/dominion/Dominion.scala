@@ -51,24 +51,22 @@ object Dominion {
     require(playerNames.size > 1, "At least 2 players are required!")
     require(playerNames.size < 5, "Maximum 4 players allowed!")
 
+    Logger.info(s"Players draw their initial hand")
     val players = playerNames.map(n => n -> createPlayer(n)).toMap
 
     val supplyPiles = createStartingDeck(players.size)
 
-    Logger.info(s"Starting set of cards: $supplyPiles")
+    Logger.info(s"Starting set of cards: \n$supplyPiles")
 
     var game = Game(players, supplyPiles, EmptyDeck)
-    var roundsPlayed = 0
 
-    while (!game.ended && !roundsLimit.contains(roundsPlayed)) {
+    while (!game.ended && !roundsLimit.contains(game.round)) {
       game = players.values.foldLeft(game) { (g, player) =>
         player.playTurn(g)
-      }
+      }.copy(round = game.round + 1)
 
-      Logger.info(s"All players played round #$roundsPlayed.")
-      Logger.info(s"Game state: $game")
-
-      roundsPlayed = roundsPlayed + 1
+      Logger.info(s"All players played round #${game.round}.")
+      Logger.info(s"Game state: \n$game")
     }
 
     Logger.info(s"Final ranking")
@@ -84,7 +82,7 @@ object Dominion {
     }.toMap
 
   private[dominion] def createPlayer(name: String): Player =
-    Player(name, deck = Deck.fillWith(7)(Copper) ++ Deck.fillWith(3)(Estate))
+    Player(name, deck = Deck.fillWith(7)(Copper) ++ Deck.fillWith(3)(Estate)).drawsN(5)
 
   private[dominion] def createStartingDeck(nOfPlayers: Int): Map[Card, Int] =
     createKingdomSet ++ TreasureCards(nOfPlayers) ++ VictoryCards(nOfPlayers)

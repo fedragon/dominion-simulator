@@ -32,7 +32,7 @@ case class Player(name: String,
     Logger.debug(s"$name wants to buy ${card.name}")
 
     if (cost > coins) {
-      Logger.debug(s"$name cannot buy ${card.name} for ${cost.value} coins because he only has ${cost.value} coins")
+      Logger.debug(s"$name cannot buy ${card.name} for ${cost.value} coins because he only has ${coins.value} coins")
       return (this, g)
     }
 
@@ -206,9 +206,9 @@ case class Player(name: String,
   }
 
   override def toString = {
-    val h: String = hand.mkString(",")
-    val di: String = discarded.mkString(",")
-    val de: String = deck.mkString(",")
+    val h: String = hand.mkString(", ")
+    val di: String = discarded.mkString(", ")
+    val de: String = deck.mkString(", ")
     s"""$name: { hand: [$h], discarded: [$di], deck: [$de], turn: $turn }""".stripMargin
   }
 }
@@ -275,7 +275,7 @@ trait TurnOps {
   }
 
   def consumesCoins(n: Coins): Player = {
-    Logger.info(s"$name consumes $n extra coin(s)")
+    Logger.info(s"$name consumes ${n.value} extra coin(s)")
     remainingExtraCoins.modify(_ - n)
   }
 

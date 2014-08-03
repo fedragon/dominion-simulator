@@ -8,14 +8,19 @@ import scalaz.Scalaz._
 class DominionSpec extends UnitSpec {
 
   "Dominion" should "let players play a game" in {
-    Dominion.playGame(Vector("X", "Y", "Z"))(Some(1))
+    Dominion.playGame(Vector("X", "Y"))(Some(1))
   }
 
   it should "create a player with a starting deck" in {
     val subject: Player = Dominion.createPlayer("P")
 
+    val expectedCards = Deck.fillWith(7)(Copper) ++ Deck.fillWith(3)(Estate)
+
     subject.name shouldBe "P"
-    subject.deck should contain theSameElementsAs Deck(Copper, Copper, Copper, Copper, Copper, Copper, Copper, Estate, Estate, Estate)
+    subject.hand.size shouldBe 5
+    subject.deck.size shouldBe 5
+    subject.discarded shouldBe 'empty
+    (subject.deck ++ subject.hand) should contain theSameElementsAs expectedCards
   }
 
   it should "create a random set of 10 Kingdom Cards having 10 cards each" in {

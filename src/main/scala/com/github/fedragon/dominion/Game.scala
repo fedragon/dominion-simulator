@@ -6,7 +6,7 @@ import org.slf4j.LoggerFactory
 
 import scalaz.Scalaz._
 
-case class Game(players: Map[String, Player], supplyPiles: Map[Card, Int], trashed: Deck) {
+case class Game(players: Map[String, Player], supplyPiles: Map[Card, Int], trashed: Deck, round: Int = 0) {
 
   val Logger = LoggerFactory.getLogger(getClass)
 
@@ -59,13 +59,10 @@ case class Game(players: Map[String, Player], supplyPiles: Map[Card, Int], trash
   }
 
   override def toString = {
-    val ps = players.values.mkString(",")
-    val sps = supplyPiles.mkString(",")
+    val ps = players.values.mkString(" ", ", ", " ")
+    val sps = supplyPiles.mkString(" ", ", ", " ")
     val tr = trashed.mkString(",")
-    s"""{
-       |players: [ $ps ],
-       |supplyPiles: { $sps },
-       |trashed: [ $tr ]
-       |}""".stripMargin
+    s"""{ round: $round, players: [$ps], supplyPiles: {$sps}, trashed: [$tr] }""".stripMargin
   }
 }
+
