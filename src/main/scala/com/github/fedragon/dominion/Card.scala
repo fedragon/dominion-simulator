@@ -16,6 +16,8 @@ sealed trait Modifiers
 
 trait Attack extends Modifiers
 
+trait Kingdom extends Modifiers
+
 trait Reaction extends Modifiers
 
 abstract class Action(val name: String, val cost: Coins) extends Card

@@ -1,7 +1,7 @@
 package com.github.fedragon.dominion
 
 import Deck._
-import KingdomCards.{Moat, Smithy, Spy}
+import ActionCards.{Moat, Smithy, Spy}
 import TreasureCards.{Copper, Silver}
 import VictoryCards.{Curse, Duchy, Province}
 

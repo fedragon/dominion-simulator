@@ -1,7 +1,7 @@
 package com.github.fedragon.dominion
 
 import Deck._
-import KingdomCards.{Market, Moat, Witch}
+import ActionCards.{Market, Moat, Witch}
 import TreasureCards.Copper
 import com.github.fedragon.dominion.VictoryCards._
 

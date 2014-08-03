@@ -1,6 +1,6 @@
 package com.github.fedragon.dominion
 
-import KingdomCards.Moat
+import ActionCards.Moat
 import VictoryCards.{Curse, Province}
 import org.slf4j.LoggerFactory
 

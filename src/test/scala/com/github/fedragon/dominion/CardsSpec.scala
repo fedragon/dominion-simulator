@@ -1,7 +1,7 @@
 package com.github.fedragon.dominion
 
 import Deck._
-import KingdomCards._
+import ActionCards._
 import TreasureCards._
 import VictoryCards._
 

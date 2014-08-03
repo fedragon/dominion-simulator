@@ -1,7 +1,7 @@
 package com.github.fedragon.dominion
 
+import ActionCards._
 import Deck._
-import KingdomCards._
 import TreasureCards._
 import VictoryCards._
 import org.slf4j.LoggerFactory
@@ -19,6 +19,7 @@ object Dominion {
     CouncilRoom,
     Feast,
     Festival,
+    Gardens,
     Laboratory,
     Market,
     Militia,
@@ -33,23 +34,24 @@ object Dominion {
     Village,
     Witch,
     Woodcutter,
-    Workshop
-  )
+    Workshop)
 
   private def TreasureCards(nOfPlayers: Int) = Map(
     Copper -> (60 - nOfPlayers * 7),
     Silver -> 40,
     Gold -> 30)
 
-  private val VictoryCards = Map(
-    Duchy -> 12,
-    Estate -> 12,
-    Province -> 12,
-    Curse -> 30
-  )
+  private def VictoryCards(nOfPlayers: Int) = Map(
+    Duchy -> (if (nOfPlayers > 2) 12 else 8),
+    Estate -> (if (nOfPlayers > 2) 12 else 8),
+    Province -> (if (nOfPlayers > 2) 12 else 8),
+    Curse -> (nOfPlayers - 1) * 10)
 
   def playGame(playerNames: Vector[String])(roundsLimit: Option[Int]): Unit = {
-    val players = playerNames.map(createPlayer).toMap
+    require(playerNames.size > 1, "At least 2 players are required!")
+    require(playerNames.size < 5, "Maximum 4 players allowed!")
+
+    val players = playerNames.map(n => n -> createPlayer(n)).toMap
 
     val supplyPiles = createStartingDeck(players.size)
 
@@ -69,13 +71,21 @@ object Dominion {
       roundsPlayed = roundsPlayed + 1
     }
 
-    game.ranking.foreach(println)
+    Logger.info(s"Final ranking")
+    game.ranking.foreach {
+      case (player, score) => Logger.info(s"${player.name}: $score")
+    }
   }
 
-  private def createPlayer(name: String) =
-    name -> Player(name, deck = Deck.fillWith(7)(Copper) ++ Deck.fillWith(3)(Estate))
+  private[dominion] def createKingdomSet: Map[Card, Int] =
+    Random.shuffle(KingdomCards).take(10).map {
+      case g: Gardens.type => g -> 12
+      case other => other -> 10
+    }.toMap
 
-  private def createStartingDeck(nOfPlayers: Int): Map[Card, Int] =
-    Random.shuffle(KingdomCards).take(10).map(_ -> 10).toMap ++ TreasureCards(nOfPlayers) ++ VictoryCards
+  private[dominion] def createPlayer(name: String): Player =
+    Player(name, deck = Deck.fillWith(7)(Copper) ++ Deck.fillWith(3)(Estate))
 
+  private[dominion] def createStartingDeck(nOfPlayers: Int): Map[Card, Int] =
+    createKingdomSet ++ TreasureCards(nOfPlayers) ++ VictoryCards(nOfPlayers)
 }
