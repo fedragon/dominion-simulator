@@ -22,10 +22,7 @@ case class Game(players: Map[String, Player], supplyPiles: Map[Card, Int], trash
       case (name, player) =>
         val nOfCards = player.allCards.size
 
-        val points = player.allVictories.map {
-          case FixedVictory(_, _, v) => v()
-          case FunctionVictory(_, _, f) => f(nOfCards)
-        }.sum
+        val points = player.allVictories.map(_.value(nOfCards)).sum
 
         player -> points
     }.toSeq.sortWith(_._2 > _._2)

@@ -14,7 +14,7 @@ trait PlayerOps extends ThiefOps {
     a match {
       case Bureaucrat =>
         // Gain 1 silver, victims reveal a Victory from their hand and put it on top of their deck
-        val gn = for {
+        (for {
           (card, g2) <- g.pick(_ == Silver)
           _ = self.Logger.info(s"${self.name} gains 1 Silver and puts it on top of his deck")
           g3 = g2.update(self.deckLens.modify(card +: _))
@@ -30,8 +30,7 @@ trait PlayerOps extends ThiefOps {
                 state
             }
           }
-        }
-        gn.getOrElse(g)
+        }).getOrElse(g)
       case Cellar =>
         // Discard N cards, draw N cards, +1 action
         val (discarded, newHand) = self.hand.partition(c => self.strategy.discardForCellar(self.hand).contains(c))
@@ -41,7 +40,7 @@ trait PlayerOps extends ThiefOps {
         g.update(p2.drawsN(discarded.size).gainsActions(1))
       case Chapel =>
         // Trash up to 4 cards from the hand
-        val g3 = for {
+        (for {
           (picked, remaining) <- self.strategy.pickCardsToTrash(self.hand)
           g2 = g.update(self.handLens.set(remaining))
         } yield {
@@ -49,8 +48,7 @@ trait PlayerOps extends ThiefOps {
             self.Logger.info(s"${self.name} trashes $card")
             state.trash(card)
           }
-        }
-        g3.getOrElse(g)
+        }).getOrElse(g)
       case CouncilRoom =>
         // Draw 4 cards, +1 buy, every other player draws 1 card
         val g2 = g.victims(self).foldLeft(g) { (state, victim) =>
@@ -59,7 +57,7 @@ trait PlayerOps extends ThiefOps {
         g2.update(self.drawsN(4).gainsBuys(1))
       case Feast =>
         // Trash this card and gain one costing up to 5 coins
-        val g3 = for {
+        (for {
           (feast, newDiscarded) <- self.discarded.pick(_ == Feast)
           cardForFeast = self.strategy.selectCardForFeast(g.availableCards)
           (card, g2) <- g.pick(_ == cardForFeast)
@@ -67,9 +65,7 @@ trait PlayerOps extends ThiefOps {
           self.Logger.info(s"${self.name} trashes Feast")
           self.Logger.info(s"${self.name} gains ${card.name}")
           g2.trash(feast).update(self.discardedLens.set(card +: newDiscarded))
-        }
-
-        g3.getOrElse(g)
+        }).getOrElse(g)
       case Festival =>
         // Draw +2 actions, +1 buy, +2 coins
         g.update(self.gains(Turn(2, 1, Coins(2))))
@@ -89,7 +85,7 @@ trait PlayerOps extends ThiefOps {
         g2.update(self.gainsCoins(Coins(2)))
       case Mine =>
         // Trash 1 treasure card and get one whose cost is +3
-        val g3 = for {
+        (for {
           treasure <- self.strategy.pickTreasureToTrash(self.hand)
           (_, newHand) <- self.hand.pick(_ == treasure)
           p = self.handLens.set(newHand)
@@ -97,9 +93,7 @@ trait PlayerOps extends ThiefOps {
         } yield {
           self.Logger.info(s"${self.name} trashes ${treasure.name} and gains ${newTreasure.name}")
           g2.update(p.handLens.modify(newTreasure +: _))
-        }
-
-        g3.getOrElse(g)
+        }).getOrElse(g)
       case Moat =>
         // Draw 2 cards
         g.update(self.drawsN(2))
@@ -112,7 +106,7 @@ trait PlayerOps extends ThiefOps {
         }
       case Remodel =>
         // Trash a card and gain one that costs up to 2 coins more
-        val g3 = for {
+        (for {
           (cardToTrash, newHand) <- self.strategy.pickCardToTrash(self.hand)
           _ = self.Logger.debug(s"${self.name} wants to trash ${cardToTrash.name}")
           cardToGain <- self.strategy.pickCardToGain(g.availableCards)(cardToTrash.cost)
@@ -122,9 +116,7 @@ trait PlayerOps extends ThiefOps {
         } yield {
           self.Logger.info(s"${self.name} trashes ${cardToTrash.name} and gains ${card.name}")
           g2.trash(cardToTrash).update(p)
-        }
-
-        g3.getOrElse(g)
+        }).getOrElse(g)
       case Smithy =>
         // Draw 3 cards
         g.update(self.drawsN(3))

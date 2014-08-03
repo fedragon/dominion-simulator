@@ -1,7 +1,6 @@
 package com.github.fedragon.dominion
 
 import Deck._
-import com.github.fedragon.dominion.VictoryCards.Gardens
 import org.slf4j.LoggerFactory
 
 import scalaz.Scalaz._

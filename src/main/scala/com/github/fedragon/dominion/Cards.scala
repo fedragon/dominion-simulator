@@ -58,15 +58,15 @@ object TreasureCards {
 
 object VictoryCards {
 
-  case object Curse extends FixedVictory("Curse", cost = Coins(0), value = FixedValue(-1))
+  case object Curse extends Victory("Curse", cost = Coins(0), value = FixedValue(-1))
 
-  case object Estate extends FixedVictory("Estate", cost = Coins(2), value = FixedValue(1))
+  case object Estate extends Victory("Estate", cost = Coins(2), value = FixedValue(1))
 
-  case object Duchy extends FixedVictory("Duchy", cost = Coins(5), value = FixedValue(3))
+  case object Duchy extends Victory("Duchy", cost = Coins(5), value = FixedValue(3))
 
-  case object Province extends FixedVictory("Province", cost = Coins(8), value = FixedValue(6))
+  case object Province extends Victory("Province", cost = Coins(8), value = FixedValue(6))
 
-  case object Gardens extends FunctionVictory("Gardens", cost = Coins(4), value = FunctionValue(n => math.floor(n / 10).toInt))
+  case object Gardens extends Victory("Gardens", cost = Coins(4), value = FunctionValue(n => math.floor(n / 10).toInt))
 
 }
 

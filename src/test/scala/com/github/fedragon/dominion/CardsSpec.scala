@@ -87,13 +87,13 @@ class CardsSpec extends UnitSpec {
   }
 
   "Gardens" should "translate to: +1 point for every 10 cards, rounded down" in {
-    Estate.value() shouldBe 1
+    Estate.value(0) shouldBe 1
 
     Gardens.value(5) shouldBe 0
     Gardens.value(16) shouldBe 1
     Gardens.value(30) shouldBe 3
 
-    (Estate.value() + Gardens.value(15)) shouldBe 2
+    (Estate.value(0) + Gardens.value(15)) shouldBe 2
     (Gardens.value(30) + Gardens.value(5)) shouldBe 3
   }
 
