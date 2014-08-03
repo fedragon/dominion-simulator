@@ -48,7 +48,7 @@ object Dominion {
     Curse -> 30
   )
 
-  def playGame(playerNames: Vector[String]): Unit = {
+  def playGame(playerNames: Vector[String])(roundsLimit: Option[Int]): Unit = {
     val players = playerNames.map(createPlayer).toMap
 
     val supplyPiles = createStartingDeck(players.size)
@@ -56,14 +56,17 @@ object Dominion {
     Logger.info(s"Starting set of cards: $supplyPiles")
 
     var game = Game(players, supplyPiles, EmptyDeck)
+    var roundsPlayed = 0
 
-    while (!game.ended) {
+    while (!game.ended && !roundsLimit.contains(roundsPlayed)) {
       game = players.values.foldLeft(game) { (g, player) =>
         player.playTurn(g)
       }
 
-      Logger.info("All players played their turn.")
+      Logger.info(s"All players played round #$roundsPlayed.")
       Logger.info(s"Game state: $game")
+
+      roundsPlayed = roundsPlayed + 1
     }
 
     game.ranking.foreach(println)
