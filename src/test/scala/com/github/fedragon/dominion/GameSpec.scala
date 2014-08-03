@@ -89,7 +89,7 @@ class GameSpec extends UnitSpec {
     subject.victims(p1).loneElement shouldBe p3
   }
 
-  it should "return the available cards" in {
+  it should "return the cards available in the supply piles" in {
     val subject = Game(Map.empty, Map(Curse -> 10, Moat -> 3, Witch -> 0), EmptyDeck)
 
     subject.availableCards shouldBe Deck(Moat)

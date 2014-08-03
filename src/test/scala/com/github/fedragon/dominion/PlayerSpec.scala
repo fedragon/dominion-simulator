@@ -153,7 +153,17 @@ class PlayerSpec extends UnitSpec {
     gStateOne.supplyPiles.loneElement shouldBe (Moat -> 0)
   }
 
-  // TODO test buys when the preferred card is not available in the main deck
+  it should "not be able to buy a card, if it is not available" in {
+    val subject = Player("X", hand = Deck(Copper), deck = EmptyDeck, turn = Turn(0, 1, Coins(1)))
+    val game = emptyGame.copy(players = Map(subject.name -> subject), supplyPiles = Map(Moat -> 0))
+
+    val (pStateOne, gStateOne) = subject.buys(Moat)(game)
+
+    pStateOne.remainingBuys.get shouldBe 1
+    pStateOne.remainingExtraCoins.get shouldBe Coins(1)
+    pStateOne.hand.loneElement shouldBe Copper
+    gStateOne.supplyPiles.loneElement shouldBe (Moat -> 0)
+  }
 
   it should "be able to know all the victory cards in his hand, discarded pile, and deck" in {
     val subject = new Player("X", hand = Deck(Copper, Duchy, Silver), deck = Deck(Province), discarded = Deck(Estate))

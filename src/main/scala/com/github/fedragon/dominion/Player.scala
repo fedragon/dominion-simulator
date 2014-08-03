@@ -36,7 +36,7 @@ case class Player(name: String,
       return (this, g)
     }
 
-    val p: Player =
+    val updated: Player =
       if (remainingExtraCoins.get >= cost) {
         Logger.info(s"$name buys ${card.name}")
         consumesCoins(cost)
@@ -54,9 +54,9 @@ case class Player(name: String,
         else discard(cardsToDiscard)
       }
 
-    val (p2, g2) = g.pick(_ === card).fold((p, g)) {
+    val (p2, g2) = g.pick(_ === card).fold((this, g)) {
       case (_, gx) =>
-        val px = p.handLens.modify(card +: _).consumesBuy
+        val px = updated.handLens.modify(card +: _).consumesBuy
         Logger.info(s"$name buys ${card.name} for ${cost.value} coins")
         px -> gx.update(px)
     }
