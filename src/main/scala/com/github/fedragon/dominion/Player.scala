@@ -64,7 +64,7 @@ case class Player(name: String,
     (p2, g2.update(p2))
   }
 
-  def coins: Coins =
+  val coins: Coins =
     remainingExtraCoins.get + hand.foldLeft(Coins(0)) {
       (acc, card) => acc + (card match {
         case t: Treasure => t.value
@@ -181,9 +181,9 @@ case class Player(name: String,
     }
   }
 
-  def allCards: Deck = hand ++ discarded ++ deck
+  val allCards: Deck = hand ++ discarded ++ deck
 
-  def allVictories: Victories = hand.onlyVictories ++ discarded.onlyVictories ++ deck.onlyVictories
+  val allVictories: Victories = hand.onlyVictories ++ discarded.onlyVictories ++ deck.onlyVictories
 
   private def drawFromDeck: (Card, Player) =
     deck.draw match {

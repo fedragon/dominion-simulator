@@ -29,7 +29,7 @@ class GameSpec extends UnitSpec {
     val p3 = Player("P3", hand = Deck(Gardens, Province), deck = Deck.fillWith(20)(Copper))
 
     val subject = Game(Map(p1.name -> p1, p2.name -> p2, p3.name -> p3), Map.empty, EmptyDeck)
-    val ranking = subject.calculateRanking.map {
+    val ranking = subject.ranking.map {
       case (player, points) => player.name -> points
     }
 

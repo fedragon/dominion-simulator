@@ -34,15 +34,15 @@ object Deck {
       }
     }
 
-    def onlyActions: Actions = cards.collect {
+    val onlyActions: Actions = cards.collect {
       case Action(t) => t
     }
 
-    def onlyTreasures: Treasures = cards.collect {
+    val onlyTreasures: Treasures = cards.collect {
       case Treasure(t) => t
     }
 
-    def onlyVictories: Victories = cards.collect {
+    val onlyVictories: Victories = cards.collect {
       case Victory(v) => v
     }
   }

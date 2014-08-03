@@ -17,13 +17,11 @@ case class Game(players: Map[String, Player], supplyPiles: Map[Card, Int], trash
     case (card, count) if card =/= Curse && count > 0 => card
   }.toVector
 
-  def calculateRanking: Seq[(Player, Int)] = {
+  val ranking: Seq[(Player, Int)] = {
     players.map {
       case (name, player) =>
         val nOfCards = player.allCards.size
-
         val points = player.allVictories.map(_.value(nOfCards)).sum
-
         player -> points
     }.toSeq.sortWith(_._2 > _._2)
   }
@@ -95,7 +93,7 @@ object Dominion {
       }
     }
 
-    game.calculateRanking.foreach(println)
+    game.ranking.foreach(println)
   }
 
   private def createPlayer(name: String) =
