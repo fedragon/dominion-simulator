@@ -12,6 +12,10 @@ trait CellarStrategy {
   def discardForCellar(cards: Deck): Deck
 }
 
+trait ChancellorStrategy {
+  def discardDeck(): Boolean
+}
+
 trait FeastStrategy {
   def selectCardForFeast(cards: Deck): Card
 }
@@ -52,6 +56,7 @@ trait WorkshopStrategy {
 
 trait Strategy extends TurnStrategy
 with CellarStrategy
+with ChancellorStrategy
 with ChapelStrategy
 with FeastStrategy
 with MilitiaStrategy
@@ -70,6 +75,8 @@ class DefaultStrategy extends Strategy {
 
   val DiscardableForCellar = Deck(Estate, Duchy, Province)
   val DiscardableForMilitia = Deck(Estate, Duchy, Province)
+
+  override def discardDeck(): Boolean = util.Random.nextBoolean()
 
   override def discardForCellar(cards: Deck) = cards.filter(c => DiscardableForCellar.contains(c))
 

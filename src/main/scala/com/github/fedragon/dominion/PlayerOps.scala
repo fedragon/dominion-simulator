@@ -18,6 +18,7 @@ trait PlayerOps extends ThiefOps {
         val (revealedCards, p) = self.revealsUntil(_.onlyTreasures.size === 2)
         val (treasures, others) = (revealedCards.onlyTreasures, revealedCards.diff(revealedCards.onlyTreasures))
 
+        self.Logger.info(s"${self.name} gains $treasures in his hand and discards the other revealed cards")
         val p2 = p.handLens.modify(_ ++ treasures).discardedLens.modify(_ ++ others)
 
         g.update(p2)
@@ -47,6 +48,17 @@ trait PlayerOps extends ThiefOps {
         val p2 = self.handLens.set(newHand).discardedLens.modify(discarded ++ _)
 
         g.update(p2.drawsN(discarded.size).gainsActions(1))
+      case Chancellor =>
+        // Gain +2 coins, you may put your deck into your discarded pile
+
+        val p = self.gainsCoins(Coins(2))
+        val p2 = if (self.strategy.discardDeck()) {
+          self.Logger.info(s"${self.name} puts his deck into his discarded pile")
+          p.discardedLens.modify(_ ++ deckLens.get).deckLens.set(EmptyDeck)
+        }
+        else p
+
+        g.update(p2)
       case Chapel =>
         // Trash up to 4 cards from the hand
         (for {

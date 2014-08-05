@@ -8,6 +8,8 @@ object ActionCards {
 
   case object Cellar extends Action("Cellar", cost = Coins(2)) with Kingdom
 
+  case object Chancellor extends Action("Chancellor", cost = Coins(3)) with Kingdom
+
   case object Chapel extends Action("Chapel", cost = Coins(2)) with Kingdom
 
   case object CouncilRoom extends Action("CouncilRoom", cost = Coins(5)) with Kingdom
@@ -17,6 +19,8 @@ object ActionCards {
   case object Festival extends Action("Festival", cost = Coins(5)) with Kingdom
 
   case object Laboratory extends Action("Laboratory", cost = Coins(5)) with Kingdom
+
+  //TODO Library
 
   case object Market extends Action("Market", cost = Coins(5)) with Kingdom
 
