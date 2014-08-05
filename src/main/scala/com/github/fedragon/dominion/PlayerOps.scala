@@ -1,7 +1,7 @@
 package com.github.fedragon.dominion
 
-import Deck._
 import ActionCards._
+import Deck._
 import TreasureCards.{Copper, Silver}
 import VictoryCards._
 
@@ -12,6 +12,15 @@ trait PlayerOps extends ThiefOps {
 
   def playAction(a: Action)(g: Game): Game =
     a match {
+      case Adventurer =>
+        // Reveal cards from the deck until you reveal 2 treasures: gain the 2 treasures in your hand and discard the
+        // other revealed cards
+        val (revealedCards, p) = self.revealsUntil(_.onlyTreasures.size === 2)
+        val (treasures, others) = (revealedCards.onlyTreasures, revealedCards.diff(revealedCards.onlyTreasures))
+
+        val p2 = p.handLens.modify(_ ++ treasures).discardedLens.modify(_ ++ others)
+
+        g.update(p2)
       case Bureaucrat =>
         // Gain 1 silver, victims reveal a Victory from their hand and put it on top of their deck
         (for {

@@ -181,6 +181,20 @@ case class Player(name: String,
     }
   }
 
+  def revealsUntil(condition: Deck => Boolean) = {
+    def step(acc: (Deck, Player)): (Deck, Player) = {
+      val (deck, p) = acc
+
+      if(condition(deck)) acc
+      else {
+        val (newCard, newPlayer) = p.revealsN(1)
+        step(deck ++ newCard, newPlayer)
+      }
+    }
+
+    step((EmptyDeck, this))
+  }
+
   val allCards: Deck = hand ++ discarded ++ deck
 
   val allVictories: Victories = hand.onlyVictories ++ discarded.onlyVictories ++ deck.onlyVictories

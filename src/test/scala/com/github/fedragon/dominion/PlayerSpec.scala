@@ -61,6 +61,15 @@ class PlayerSpec extends UnitSpec {
     pStateTwo.discarded.size shouldBe 1
   }
 
+  it should "be able to reveal cards until a certain condition applies" in {
+    val subject = Player("X", hand = Deck(Adventurer), deck = Deck(Market, Bureaucrat, Copper, Smithy, Silver, Province))
+
+    val (cards, pStateOne) = subject.revealsUntil(_.onlyTreasures.size === 2)
+
+    cards should contain theSameElementsAs Deck(Market, Bureaucrat, Smithy, Copper, Silver)
+    pStateOne.deck.loneElement shouldBe Province
+  }
+
   it should "be able to know the total amount of coins he can spend" in {
     val subject = new Player("X", hand = Deck(Copper, Silver), deck = EmptyDeck, turn = Turn(1, 1, Coins(2)))
 

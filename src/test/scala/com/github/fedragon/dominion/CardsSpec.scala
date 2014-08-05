@@ -9,6 +9,18 @@ class CardsSpec extends UnitSpec {
 
   val emptyGame = Game(Map.empty, Map.empty, EmptyDeck)
 
+  "Adventurer" should "translate to: reveal cards from deck until you draw 2 treasures; discard any other revealed card" in {
+    val subject = Player("X", hand = Deck(Adventurer), deck = Deck(Market, Bureaucrat, Copper, Smithy, Silver, Province))
+    val other = Player("Y", hand = EmptyDeck, deck = EmptyDeck)
+    val game = emptyGame.copy(players = Map(subject.name -> subject, other.name -> other), supplyPiles = Map.empty)
+
+    val (stateOne, _) = subject.plays(Adventurer)(game)
+
+    stateOne.hand should contain theSameElementsAs Deck(Copper, Silver)
+    stateOne.deck.loneElement shouldBe Province
+    stateOne.discarded should contain theSameElementsAs Deck(Adventurer, Market, Bureaucrat, Smithy)
+  }
+
   "Bureaucrat" should "translate to: gain 1 Silver on top of your deck, victims reveal a Victory card and put it on top of their deck" in {
     val subject = Player("X", hand = Deck(Bureaucrat), deck = EmptyDeck)
     val other = Player("Y", hand = Deck(Copper, Market, Province), deck = Deck(Market))

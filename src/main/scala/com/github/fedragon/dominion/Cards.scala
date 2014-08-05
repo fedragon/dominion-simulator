@@ -2,6 +2,8 @@ package com.github.fedragon.dominion
 
 object ActionCards {
 
+  case object Adventurer extends Action("Adventurer", cost = Coins(6)) with Kingdom
+
   case object Bureaucrat extends Action("Bureaucrat", cost = Coins(4)) with Kingdom
 
   case object Cellar extends Action("Cellar", cost = Coins(2)) with Kingdom
