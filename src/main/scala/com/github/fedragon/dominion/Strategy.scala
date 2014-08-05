@@ -77,15 +77,15 @@ class DefaultStrategy extends Strategy {
     if (cards.size <= 3) EmptyDeck
     else cards.take(cards.size - 3)
 
-  override def holderGainsRevealedTreasure(card: Card) = card == Silver || card == Gold
+  override def holderGainsRevealedTreasure(card: Card) = card === Silver || card === Gold
 
-  override def makeGroceriesList(cards: Deck) = cards.filterNot(_ == Curse)
+  override def makeGroceriesList(cards: Deck) = cards.filterNot(_ === Curse)
 
   override def pickCardToGain(cards: Deck)(cost: Coins): Option[Card] =
     cards.sortWith(_.cost > _.cost).filterNot(_.cost > cost + Coins(2)).headOption
-  override def pickCardToTrash(cards: Deck): Option[(Card, Deck)] = cards.pick(_ == Copper)
+  override def pickCardToTrash(cards: Deck): Option[(Card, Deck)] = cards.pick(_ === Copper)
 
-  override def pickCardsToTrash(cards: Deck): Option[(Deck, Deck)] = cards.pickN(4)(_ == Curse)
+  override def pickCardsToTrash(cards: Deck): Option[(Deck, Deck)] = cards.pickN(4)(_ === Curse)
 
   override def pickTreasureToTrash(cards: Deck) = cards.onlyTreasures.headOption
 

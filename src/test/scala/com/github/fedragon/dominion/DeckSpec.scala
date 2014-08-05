@@ -25,7 +25,7 @@ class DeckSpec extends UnitSpec {
   }
 
   "Picking from a deck" should "return the card, if available" in {
-    subject.pick(_ == Province) match {
+    subject.pick(_ === Province) match {
       case Some((card, newDeck)) =>
         card shouldBe Province
         newDeck should contain theSameElementsAs Deck(Copper, Duchy, Moat, Silver, Smithy)
@@ -36,7 +36,7 @@ class DeckSpec extends UnitSpec {
   it should "return a number of cards, if available" in {
     val deck = Deck(Curse, Curse, Province, Silver, Smithy)
 
-    deck.pickN(4)(_ == Curse) match {
+    deck.pickN(4)(_ === Curse) match {
       case Some((cards, newDeck)) =>
         cards should contain theSameElementsAs Deck(Curse, Curse)
         newDeck should contain theSameElementsAs Deck(Province, Silver, Smithy)
@@ -45,7 +45,7 @@ class DeckSpec extends UnitSpec {
   }
 
   it should "not return the card, if not available" in {
-    subject.pick(_ == Spy) shouldBe None
+    subject.pick(_ === Spy) shouldBe None
   }
 }
 

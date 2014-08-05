@@ -31,7 +31,7 @@ case class Game(players: Map[String, Player], supplyPiles: Map[Card, Int], trash
     supplyPiles.get(Province).isEmpty || supplyPiles.count {
       case (_, 0) => true
       case _ => false
-    } == 3
+    } === 3
 
   def find(p: Player): Player = players(p.name)
 

@@ -26,6 +26,14 @@ class PlayerSpec extends UnitSpec {
     pStateOne.hand should contain theSameElementsAs Deck(Copper, Estate)
   }
 
+  it should "be able to shuffle his cards before drawing, if needed" in {
+    val pStateOne = new Player("X", deck = EmptyDeck, discarded = Deck(Copper)).draws
+
+    pStateOne.deck shouldBe 'empty
+    pStateOne.hand.loneElement shouldBe Copper
+    pStateOne.discarded shouldBe 'empty
+  }
+
   it should "be able to reveal and discard the top card in his deck" in {
     val subject = new Player("X", deck = Deck(Gold, Estate))
     val pStateOne = subject.reveals(_ => false)
