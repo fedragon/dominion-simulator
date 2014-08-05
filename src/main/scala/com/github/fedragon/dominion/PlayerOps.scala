@@ -92,6 +92,14 @@ trait PlayerOps extends ThiefOps {
       case Laboratory =>
         // Draw 2 cards, +1 action
         g.update(self.drawsN(2).gainsActions(1))
+      case Library =>
+        // Draw until you have 7 cards in your hard, you may discard any Action card you draw
+
+        self.hand.pickN(7 - self.hand.size)(_ => true).fold(g) {
+          case (picked, newDeck) =>
+            g.update(self.handLens.modify(_ ++ picked).deckLens.set(newDeck))
+            // TODO player may choose to discard actions!
+        }
       case Market =>
         // Draw 1 card, +1 action, +1 buy, +1 coin
         g.update(self.draws.gains(Turn(1, 1, Coins(1))))

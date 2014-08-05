@@ -19,6 +19,7 @@ class CardsSpec extends UnitSpec {
     stateOne.hand should contain theSameElementsAs Deck(Copper, Silver)
     stateOne.deck.loneElement shouldBe Province
     stateOne.discarded should contain theSameElementsAs Deck(Adventurer, Market, Bureaucrat, Smithy)
+    stateOne.turn shouldBe Turn(actions = 0, buys = 1, coins = Coins(0))
   }
 
   "Bureaucrat" should "translate to: gain 1 Silver on top of your deck, victims reveal a Victory card and put it on top of their deck" in {
@@ -29,6 +30,7 @@ class CardsSpec extends UnitSpec {
     val (stateOne, gameOne) = subject.plays(Bureaucrat)(game)
 
     stateOne.deck.head shouldBe Silver
+    stateOne.turn shouldBe Turn(actions = 0, buys = 1, coins = Coins(0))
     stateOne.discarded.loneElement shouldBe Bureaucrat
 
     gameOne.find(other).deck.head shouldBe Province
@@ -67,6 +69,7 @@ class CardsSpec extends UnitSpec {
     stateOne.hand.loneElement shouldBe Province
     stateOne.discarded.loneElement shouldBe Chapel
     stateOne.deck shouldBe 'empty
+    stateOne.turn shouldBe Turn(actions = 0, buys = 1, coins = Coins(0))
 
     gameOne.trashed should contain theSameElementsAs Deck(Curse, Curse)
   }
@@ -94,6 +97,7 @@ class CardsSpec extends UnitSpec {
     stateOne.hand shouldBe 'empty
     stateOne.discarded.loneElement shouldBe Witch
     stateOne.deck shouldBe 'empty
+    stateOne.turn shouldBe Turn(actions = 0, buys = 1, coins = Coins(0))
 
     gameOne.trashed.loneElement shouldBe Feast
   }
@@ -131,6 +135,17 @@ class CardsSpec extends UnitSpec {
     stateOne.deck shouldBe 'empty
     stateOne.discarded.loneElement shouldBe Laboratory
     stateOne.turn shouldBe Turn(actions = 1, buys = 1, coins = Coins(0))
+  }
+
+  "Library" should "translate to: draw until you have 7 cards in your hand, you may discard any Action card you draw" in {
+    val subject = Player("X", hand = Deck(Library, Laboratory, Province, Silver, Moat), deck = Deck(Workshop, Spy, Province, Silver))
+    val game = emptyGame.copy(players = Map(subject.name -> subject))
+
+    val (stateOne, _) = subject.plays(Library)(game)
+
+    stateOne.hand.size shouldBe 7
+    stateOne.discarded.loneElement shouldBe Library
+    stateOne.turn shouldBe Turn(actions = 0, buys = 1, coins = Coins(0))
   }
 
   "Market" should "translate to: +1 card, +1 action, +1 buy, +1 coin" in {

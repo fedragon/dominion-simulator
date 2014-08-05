@@ -12,7 +12,7 @@ object ActionCards {
 
   case object Chapel extends Action("Chapel", cost = Coins(2)) with Kingdom
 
-  case object CouncilRoom extends Action("CouncilRoom", cost = Coins(5)) with Kingdom
+  case object CouncilRoom extends Action("Council Room", cost = Coins(5)) with Kingdom
 
   case object Feast extends Action("Feast", cost = Coins(4)) with Kingdom
 
@@ -20,7 +20,7 @@ object ActionCards {
 
   case object Laboratory extends Action("Laboratory", cost = Coins(5)) with Kingdom
 
-  //TODO Library
+  case object Library extends Action("Library", cost = Coins(5)) with Kingdom
 
   case object Market extends Action("Market", cost = Coins(5)) with Kingdom
 
@@ -40,7 +40,7 @@ object ActionCards {
 
   case object Thief extends Action("Thief", cost = Coins(4)) with Attack with Kingdom
 
-  case object ThroneRoom extends Action("ThroneRoom", cost = Coins(4)) with Kingdom
+  case object ThroneRoom extends Action("Throne Room", cost = Coins(4)) with Kingdom
 
   case object Village extends Action("Village", cost = Coins(3)) with Kingdom
 
