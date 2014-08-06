@@ -76,7 +76,7 @@ class DefaultStrategy extends Strategy {
   val DiscardableForCellar = Deck(Estate, Duchy, Province)
   val DiscardableForMilitia = Deck(Estate, Duchy, Province)
 
-  override def discardDeck(): Boolean = util.Random.nextBoolean()
+  override def discardDeck(): Boolean = true
 
   override def discardForCellar(cards: Deck) = cards.filter(c => DiscardableForCellar.contains(c))
 
