@@ -10,6 +10,8 @@ import scalaz.Scalaz._
 trait PlayerOps extends ThiefOps {
   self: Player =>
 
+  import Player.Logger
+
   def playAction(a: Action)(g: Game): Game =
     a match {
       case Adventurer =>
@@ -18,7 +20,7 @@ trait PlayerOps extends ThiefOps {
         val (revealedCards, p) = self.revealsUntil(_.onlyTreasures.size === 2)
         val (treasures, others) = (revealedCards.onlyTreasures, revealedCards.diff(revealedCards.onlyTreasures))
 
-        self.Logger.info(s"${self.name} gains $treasures in his hand and discards the other revealed cards")
+        Logger.info(s"${self.name} gains $treasures in his hand and discards the other revealed cards")
         val p2 = p.handLens.modify(_ ++ treasures).discardedLens.modify(_ ++ others)
 
         g.update(p2)
@@ -26,17 +28,17 @@ trait PlayerOps extends ThiefOps {
         // Gain 1 silver, victims reveal a Victory from their hand and put it on top of their deck
         (for {
           (card, g2) <- g.pick(_ === Silver)
-          _ = self.Logger.info(s"${self.name} gains 1 Silver and puts it on top of his deck")
+          _ = Logger.info(s"${self.name} gains 1 Silver and puts it on top of his deck")
           g3 = g2.update(self.deckLens.modify(card +: _))
           victims = g3.victims(self)
         } yield {
           victims.foldLeft(g3) { (state, v) =>
             v.hand.pick(c => c === Estate || c === Duchy || c === Province) match {
               case Some((c, newHand)) =>
-                self.Logger.info(s"${self.name} reveals ${c.name} and puts it on top of his deck")
+                Logger.info(s"${self.name} reveals ${c.name} and puts it on top of his deck")
                 state.update(v.deckLens.modify(c +: _))
               case _ =>
-                self.Logger.info(s"${self.name} does not have any Victory card and reveals his hand")
+                Logger.info(s"${self.name} does not have any Victory card and reveals his hand")
                 state
             }
           }
@@ -44,7 +46,7 @@ trait PlayerOps extends ThiefOps {
       case Cellar =>
         // Discard N cards, draw N cards, +1 action
         val (discarded, newHand) = self.hand.partition(c => self.strategy.discardForCellar(self.hand).contains(c))
-        self.Logger.info(s"${self.name} discards $discarded")
+        Logger.info(s"${self.name} discards $discarded")
         val p2 = self.handLens.set(newHand).discardedLens.modify(discarded ++ _)
 
         g.update(p2.drawsN(discarded.size).gainsActions(1))
@@ -53,7 +55,7 @@ trait PlayerOps extends ThiefOps {
 
         val p = self.gainsCoins(Coins(2))
         val p2 = if (self.strategy.discardDeck()) {
-          self.Logger.info(s"${self.name} puts his deck into his discarded pile")
+          Logger.info(s"${self.name} puts his deck into his discarded pile")
           p.discardedLens.modify(_ ++ deckLens.get).deckLens.set(EmptyDeck)
         }
         else p
@@ -66,7 +68,7 @@ trait PlayerOps extends ThiefOps {
           g2 = g.update(self.handLens.set(remaining))
         } yield {
           picked.foldLeft(g2) { (state, card) =>
-            self.Logger.info(s"${self.name} trashes $card")
+            Logger.info(s"${self.name} trashes $card")
             state.trash(card)
           }
         }).getOrElse(g)
@@ -83,7 +85,7 @@ trait PlayerOps extends ThiefOps {
           cardForFeast = self.strategy.selectCardForFeast(g.availableCards)
           (card, g2) <- g.pick(_ === cardForFeast)
         } yield {
-          self.Logger.info(s"${self.name} trashes Feast and gains ${card.name}")
+          Logger.info(s"${self.name} trashes Feast and gains ${card.name}")
           g2.trash(feast).update(self.discardedLens.set(card +: newDiscarded))
         }).getOrElse(g)
       case Festival =>
@@ -119,7 +121,7 @@ trait PlayerOps extends ThiefOps {
           p = self.handLens.set(newHand)
           (newTreasure, g2) <- g.trash(treasure).pick(treasureByCost(treasure.cost + Coins(3)))
         } yield {
-          self.Logger.info(s"${self.name} trashes ${treasure.name} and gains ${newTreasure.name}")
+          Logger.info(s"${self.name} trashes ${treasure.name} and gains ${newTreasure.name}")
           g2.update(p.handLens.modify(newTreasure +: _))
         }).getOrElse(g)
       case Moat =>
@@ -129,20 +131,20 @@ trait PlayerOps extends ThiefOps {
         // Trash a Copper and gain +3 coins
         self.hand.pick(_ === Copper).fold(g) {
           case (copper, newHand) =>
-            self.Logger.info(s"${self.name} trashes a Copper")
+            Logger.info(s"${self.name} trashes a Copper")
             g.trash(copper).update(self.handLens.set(newHand).gainsCoins(Coins(3)))
         }
       case Remodel =>
         // Trash a card and gain one that costs up to 2 coins more
         (for {
           (cardToTrash, newHand) <- self.strategy.pickCardToTrash(self.hand)
-          _ = self.Logger.debug(s"${self.name} wants to trash ${cardToTrash.name}")
+          _ = Logger.debug(s"${self.name} wants to trash ${cardToTrash.name}")
           cardToGain <- self.strategy.pickCardToGain(g.availableCards)(cardToTrash.cost)
-          _ = self.Logger.debug(s"${self.name} wants to gain ${cardToGain.name}")
+          _ = Logger.debug(s"${self.name} wants to gain ${cardToGain.name}")
           (card, g2) <- g.pick(_ === cardToGain)
           p = self.handLens.set(newHand).discardedLens.modify(card +: _)
         } yield {
-          self.Logger.info(s"${self.name} trashes ${cardToTrash.name} and gains ${card.name}")
+          Logger.info(s"${self.name} trashes ${cardToTrash.name} and gains ${card.name}")
           g2.trash(cardToTrash).update(p)
         }).getOrElse(g)
       case Smithy =>
@@ -168,7 +170,7 @@ trait PlayerOps extends ThiefOps {
         // Choose an action in your hand and play it twice
         self.strategy.selectActionForThroneRoom(self.hand).fold(g) { a =>
           val g2 = g.update(self.discard(a))
-          self.Logger.info(s"${self.name} decides to play twice ${a.name}")
+          Logger.info(s"${self.name} decides to play twice ${a.name}")
           Seq(a, a).foldLeft(g2) { (gn, _) =>
             gn.find(self).playAction(a)(gn)
           }
@@ -193,7 +195,7 @@ trait PlayerOps extends ThiefOps {
         val cardForWorkshop = self.strategy.selectCardForWorkshop(g.availableCards)
         g.pick(_ === cardForWorkshop).fold(g) {
           case (card, g2) =>
-            self.Logger.info(s"${self.name} gains ${card.name}")
+            Logger.info(s"${self.name} gains ${card.name}")
             g2.update(self.discardedLens.modify(card +: _))
         }
       case other =>
@@ -209,6 +211,8 @@ trait PlayerOps extends ThiefOps {
 trait ThiefOps {
   self: Player =>
 
+  import Player.Logger
+
   def playThief(g: Game): Game = {
     // every victim reveals the top 2 cards from his deck
     val revealedCards = g.victims(self).map(_.revealsN(2))
@@ -219,12 +223,12 @@ trait ThiefOps {
 
         val treasures = revealed.onlyTreasures
 
-        self.Logger.info(s"Treasures revealed $treasures")
+        Logger.info(s"Treasures revealed $treasures")
 
         val gn = if (treasures.isEmpty) {
           // no treasures: discard both revealed cards
           val victim2 = revealed.foldLeft(victim)((state, card) => state.discardedLens.modify(card +: _))
-          self.Logger.info(s"No treasures. ${victim.name} discards revealed cards $revealed")
+          Logger.info(s"No treasures. ${victim.name} discards revealed cards $revealed")
           game.update(victim2)
         } else {
           val (gainable, discardable) = treasures.partition(self.strategy.holderGainsRevealedTreasure)
@@ -251,7 +255,7 @@ trait ThiefOps {
   private def onlyGainableTreasures(hd: Treasure, tl: List[Treasure])(victim: Player)(game: Game): Game = {
     val updatedAttacker = self.discardedLens.modify(hd +: _)
 
-    self.Logger.info(s"${self.name} gains $hd from ${victim.name}, ${victim.name} discards [$tl]")
+    Logger.info(s"${self.name} gains $hd from ${victim.name}, ${victim.name} discards [$tl]")
 
     val updatedVictim =
       if (tl.nonEmpty)
@@ -264,7 +268,7 @@ trait ThiefOps {
   private def onlyDiscardableTreasures(hd: Treasure, tl: List[Treasure])(victim: Player)(game: Game): Game = {
     val g2 = game.trash(hd)
 
-    self.Logger.info(s"${victim.name} trashes $hd and discards [$tl]")
+    Logger.info(s"${victim.name} trashes $hd and discards [$tl]")
 
     if (tl.nonEmpty)
       g2.update(victim.discardedLens.modify(tl.head +: _))
@@ -275,7 +279,7 @@ trait ThiefOps {
     val updatedAttacker = self.discardedLens.modify(gain +: _)
     val updatedVictim = victim.discardedLens.modify(disc +: _)
 
-    self.Logger.info(s"${self.name} gains $gain from ${victim.name}; ${victim.name} discards [$disc]")
+    Logger.info(s"${self.name} gains $gain from ${victim.name}; ${victim.name} discards [$disc]")
 
     game.update(updatedAttacker).update(updatedVictim)
   }

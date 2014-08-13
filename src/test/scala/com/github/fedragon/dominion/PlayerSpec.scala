@@ -73,7 +73,7 @@ class PlayerSpec extends UnitSpec {
   it should "be able to know the total amount of coins he can spend" in {
     val subject = new Player("X", hand = Deck(Copper, Silver), deck = EmptyDeck, turn = Turn(1, 1, Coins(2)))
 
-    subject.coins shouldBe Coins(5)
+    subject.allCoins shouldBe Coins(5)
   }
 
   it should "be able to discard one card from his hand" in {

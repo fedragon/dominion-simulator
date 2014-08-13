@@ -15,8 +15,6 @@ case class Player(name: String,
   import Player._
   import monocle.syntax._
 
-  val Logger = LoggerFactory.getLogger(getClass)
-
   val handLens = this |-> _hand
   val deckLens = this |-> _deck
   val discardedLens = this |-> _discarded
@@ -31,8 +29,8 @@ case class Player(name: String,
 
     Logger.debug(s"$name wants to buy ${card.name}")
 
-    if (cost > coins) {
-      Logger.debug(s"$name cannot buy ${card.name} for ${cost.value} coins because he only has ${coins.value} coins")
+    if (cost > allCoins) {
+      Logger.debug(s"$name cannot buy ${card.name} for ${cost.value} coins because he only has ${allCoins.value} coins")
       return (this, g)
     }
 
@@ -63,14 +61,6 @@ case class Player(name: String,
 
     (p2, g2.update(p2))
   }
-
-  val coins: Coins =
-    remainingExtraCoins.get + hand.foldLeft(Coins(0)) {
-      (acc, card) => acc + (card match {
-        case t: Treasure => t.value
-        case _ => Coins(0)
-      })
-    }
 
   def discard(card: Card): Player = {
     hand.pick(_ === card).fold(this) {
@@ -197,6 +187,14 @@ case class Player(name: String,
 
   val allCards: Deck = hand ++ discarded ++ deck
 
+  val allCoins: Coins =
+    remainingExtraCoins.get + hand.foldLeft(Coins(0)) {
+      (acc, card) => acc + (card match {
+        case t: Treasure => t.value
+        case _ => Coins(0)
+      })
+    }
+
   val allVictories: Victories = hand.onlyVictories ++ discarded.onlyVictories ++ deck.onlyVictories
 
   private def drawFromDeck: (Card, Player) =
@@ -228,8 +226,9 @@ case class Player(name: String,
 }
 
 object Player {
-
   import monocle.Macro._
+
+  val Logger = LoggerFactory.getLogger(getClass)
 
   val _hand = mkLens[Player, Deck]("hand")
   val _discarded = mkLens[Player, Deck]("discarded")
@@ -257,6 +256,8 @@ case class Turn(actions: Int, buys: Int, coins: Coins) {
 
 trait TurnOps {
   this: Player =>
+
+  import Player.Logger
 
   def gains(t: Turn): Player = {
     Logger.info(s"$name gains ${t.actions} action(s), ${t.buys} buy(s), and ${t.coins.value} coin(s)")
@@ -294,7 +295,7 @@ trait TurnOps {
   }
 
   def consumesAllCoins: Player = {
-    Logger.info(s"$name uses all his extra coin(s)")
+    Logger.info(s"$name consumes all his extra coin(s)")
     remainingExtraCoins.set(Coins(0))
   }
 }
