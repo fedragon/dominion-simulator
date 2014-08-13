@@ -41,8 +41,8 @@ case class Player(name: String,
         Logger.info(s"$name buys ${card.name}")
         consumesCoins(cost)
       } else {
-        val diff = cost - remainingExtraCoins.get
-        val (_, cardsToDiscard) = hand.onlyTreasures.foldLeft((diff, EmptyDeck)) { (state, treasure) =>
+        val initialState = (cost - remainingExtraCoins.get, EmptyDeck)
+        val (_, cardsToDiscard) = hand.onlyTreasures.foldLeft(initialState) { (state, treasure) =>
           val (remaining, cards) = state
 
           if (remaining === Coins(0)) (Coins(0), cards)

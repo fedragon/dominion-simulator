@@ -1,6 +1,6 @@
 package com.github.fedragon
 
-import scalaz.Equal
+import scalaz.{Order, Equal}
 
 package object dominion {
 
@@ -17,5 +17,6 @@ package object dominion {
   implicit val CardEqual: Equal[Card] = Equal.equalA
   implicit val CoinsEqual: Equal[Coins] = Equal.equalA
   implicit val CoinsOrdering: Ordering[Coins] = Ordering.by(_.value)
+  implicit val CoinsOrder: Order[Coins] = Order.fromScalaOrdering
 }
 
