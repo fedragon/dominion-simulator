@@ -20,7 +20,7 @@ trait PlayerOps extends ThiefOps {
         val (treasures, others) = (revealedCards.onlyTreasures, revealedCards.diff(revealedCards.onlyTreasures))
 
         Logger.info(s"${self.name} gains $treasures in his hand and discards the other revealed cards")
-        val p2 = p.handLens.modify(_ ++ treasures).discardedLens.modify(_ ++ others)
+        val p2 = p._hand.modify(_ ++ treasures)._discarded.modify(_ ++ others)
 
         g.update(p2)
       case Bureaucrat =>
@@ -28,14 +28,14 @@ trait PlayerOps extends ThiefOps {
         (for {
           (card, g2) <- g.pick(_ === Silver)
           _ = Logger.info(s"${self.name} gains 1 Silver and puts it on top of his deck")
-          g3 = g2.update(self.deckLens.modify(card +: _))
+          g3 = g2.update(self._deck.modify(card +: _))
           victims = g3.victims(self)
         } yield {
           victims.foldLeft(g3) { (state, v) =>
             v.hand.pick(c => Victory.unapply(c).isDefined) match {
               case Some((c, newHand)) =>
                 Logger.info(s"${self.name} reveals ${c.name} and puts it on top of his deck")
-                state.update(v.deckLens.modify(c +: _))
+                state.update(v._deck.modify(c +: _))
               case _ =>
                 Logger.info(s"${self.name} does not have any Victory card and reveals his hand")
                 state
@@ -46,7 +46,7 @@ trait PlayerOps extends ThiefOps {
         // Discard N cards, draw N cards, +1 action
         val (discarded, newHand) = self.hand.partition(c => self.strategy.discardForCellar(self.hand).contains(c))
         Logger.info(s"${self.name} discards $discarded")
-        val p2 = self.handLens.set(newHand).discardedLens.modify(discarded ++ _)
+        val p2 = self._hand.set(newHand)._discarded.modify(discarded ++ _)
 
         g.update(p2.drawsN(discarded.size).gainsActions(1))
       case Chancellor =>
@@ -55,16 +55,15 @@ trait PlayerOps extends ThiefOps {
         val p = self.gainsCoins(Coins(2))
         val p2 = if (self.strategy.discardDeck()) {
           Logger.info(s"${self.name} puts his deck into his discarded pile")
-          p.discardedLens.modify(_ ++ deckLens.get).deckLens.set(EmptyDeck)
-        }
-        else p
+          p._discarded.modify(_ ++ _deck.get)._deck.set(EmptyDeck)
+        } else p
 
         g.update(p2)
       case Chapel =>
         // Trash up to 4 cards from the hand
         (for {
           (picked, remaining) <- self.strategy.pickCardsToTrash(self.hand)
-          g2 = g.update(self.handLens.set(remaining))
+          g2 = g.update(self._hand.set(remaining))
         } yield {
           picked.foldLeft(g2) { (state, card) =>
             Logger.info(s"${self.name} trashes $card")
@@ -85,7 +84,7 @@ trait PlayerOps extends ThiefOps {
           (card, g2) <- g.pick(_ === cardForFeast)
         } yield {
           Logger.info(s"${self.name} trashes Feast and gains ${card.name}")
-          g2.trash(feast).update(self.discardedLens.set(card +: newDiscarded))
+          g2.trash(feast).update(self._discarded.set(card +: newDiscarded))
         }).getOrElse(g)
       case Festival =>
         // Draw +2 actions, +1 buy, +2 coins
@@ -98,7 +97,7 @@ trait PlayerOps extends ThiefOps {
 
         self.hand.pickN(7 - self.hand.size)(_ => true).fold(g) {
           case (picked, newDeck) =>
-            g.update(self.handLens.modify(_ ++ picked).deckLens.set(newDeck))
+            g.update(self._hand.modify(_ ++ picked)._deck.set(newDeck))
             // TODO player may choose to discard actions!
         }
       case Market =>
@@ -117,11 +116,11 @@ trait PlayerOps extends ThiefOps {
         (for {
           treasure <- self.strategy.pickTreasureToTrash(self.hand)
           (_, newHand) <- self.hand.pick(_ === treasure)
-          p = self.handLens.set(newHand)
+          p = self._hand.set(newHand)
           (newTreasure, g2) <- g.trash(treasure).pick(treasureByCost(treasure.cost + Coins(3)))
         } yield {
           Logger.info(s"${self.name} trashes ${treasure.name} and gains ${newTreasure.name}")
-          g2.update(p.handLens.modify(newTreasure +: _))
+          g2.update(p._hand.modify(newTreasure +: _))
         }).getOrElse(g)
       case Moat =>
         // Draw 2 cards
@@ -131,7 +130,7 @@ trait PlayerOps extends ThiefOps {
         self.hand.pick(_ === Copper).fold(g) {
           case (copper, newHand) =>
             Logger.info(s"${self.name} trashes a Copper")
-            g.trash(copper).update(self.handLens.set(newHand).gainsCoins(Coins(3)))
+            g.trash(copper).update(self._hand.set(newHand).gainsCoins(Coins(3)))
         }
       case Remodel =>
         // Trash a card and gain one that costs up to 2 coins more
@@ -141,7 +140,7 @@ trait PlayerOps extends ThiefOps {
           cardToGain <- self.strategy.pickCardToGain(g.availableCards)(cardToTrash.cost)
           _ = Logger.debug(s"${self.name} wants to gain ${cardToGain.name}")
           (card, g2) <- g.pick(_ === cardToGain)
-          p = self.handLens.set(newHand).discardedLens.modify(card +: _)
+          p = self._hand.set(newHand)._discarded.modify(card +: _)
         } yield {
           Logger.info(s"${self.name} trashes ${cardToTrash.name} and gains ${card.name}")
           g2.trash(cardToTrash).update(p)
@@ -183,7 +182,7 @@ trait PlayerOps extends ThiefOps {
 
         g2.victims(self).foldLeft(g2) { (gn, pn) =>
           if (gn.curses > 0)
-            gn.drawCurse.update(pn.deckLens.modify(Curse +: _))
+            gn.drawCurse.update(pn._deck.modify(Curse +: _))
           else gn
         }
       case Woodcutter =>
@@ -195,7 +194,7 @@ trait PlayerOps extends ThiefOps {
         g.pick(_ === cardForWorkshop).fold(g) {
           case (card, g2) =>
             Logger.info(s"${self.name} gains ${card.name}")
-            g2.update(self.discardedLens.modify(card +: _))
+            g2.update(self._discarded.modify(card +: _))
         }
       case other =>
         throw new UnsupportedOperationException(s"Action not supported: $other")
@@ -226,7 +225,7 @@ trait ThiefOps {
 
         val gn = if (treasures.isEmpty) {
           // no treasures: discard both revealed cards
-          val victim2 = revealed.foldLeft(victim)((state, card) => state.discardedLens.modify(card +: _))
+          val victim2 = revealed.foldLeft(victim)((state, card) => state._discarded.modify(card +: _))
           Logger.info(s"No treasures. ${victim.name} discards revealed cards $revealed")
           game.update(victim2)
         } else {
@@ -247,18 +246,18 @@ trait ThiefOps {
         }
 
         // Discard any revealed non-treasure card
-        revealed.diff(treasures).foldLeft(gn)((state, card) => state.update(victim.discardedLens.modify(card +: _)))
+        revealed.diff(treasures).foldLeft(gn)((state, card) => state.update(victim._discarded.modify(card +: _)))
     }
   }
 
   private def onlyGainableTreasures(hd: Treasure, tl: List[Treasure])(victim: Player)(game: Game): Game = {
-    val updatedAttacker = self.discardedLens.modify(hd +: _)
+    val updatedAttacker = self._discarded.modify(hd +: _)
 
     Logger.info(s"${self.name} gains $hd from ${victim.name}, ${victim.name} discards [$tl]")
 
     val updatedVictim =
       if (tl.nonEmpty)
-        victim.discardedLens.modify(tl.head +: _)
+        victim._discarded.modify(tl.head +: _)
       else victim
 
     game.update(updatedAttacker).update(updatedVictim)
@@ -270,13 +269,13 @@ trait ThiefOps {
     Logger.info(s"${victim.name} trashes $hd and discards [$tl]")
 
     if (tl.nonEmpty)
-      g2.update(victim.discardedLens.modify(tl.head +: _))
+      g2.update(victim._discarded.modify(tl.head +: _))
     else g2
   }
 
   private def oneGainableOneDiscardable(gain: Treasure, disc: Treasure)(victim: Player)(game: Game): Game = {
-    val updatedAttacker = self.discardedLens.modify(gain +: _)
-    val updatedVictim = victim.discardedLens.modify(disc +: _)
+    val updatedAttacker = self._discarded.modify(gain +: _)
+    val updatedVictim = victim._discarded.modify(disc +: _)
 
     Logger.info(s"${self.name} gains $gain from ${victim.name}; ${victim.name} discards [$disc]")
 

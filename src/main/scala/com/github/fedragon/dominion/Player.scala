@@ -15,14 +15,14 @@ case class Player(name: String,
   import Player._
   import monocle.syntax._
 
-  val handLens = this |-> _hand
-  val deckLens = this |-> _deck
-  val discardedLens = this |-> _discarded
+  val _hand = this |-> handLens
+  val _deck = this |-> deckLens
+  val _discarded = this |-> discardedLens
 
-  val turnLens = this |-> _turn
-  val remainingActions = turnLens |-> _actions
-  val remainingBuys = turnLens |-> _buys
-  val remainingExtraCoins = turnLens |-> _coins
+  val _turn = this |-> turnLens
+  val _actions = _turn |-> actionsLens
+  val _buys = _turn |-> buysLens
+  val _coins = _turn |-> coinsLens
 
   def buys(card: Card)(g: Game): (Player, Game) = {
     val cost = card.cost
@@ -35,11 +35,11 @@ case class Player(name: String,
     }
 
     val updated: Player =
-      if (remainingExtraCoins.get >= cost) {
+      if (_coins.get >= cost) {
         Logger.info(s"$name buys ${card.name}")
         consumesCoins(cost)
       } else {
-        val initialState = (cost - remainingExtraCoins.get, EmptyDeck)
+        val initialState = (cost - _coins.get, EmptyDeck)
         val (_, cardsToDiscard) = hand.onlyTreasures.foldLeft(initialState) { (state, treasure) =>
           val (remaining, cards) = state
 
@@ -47,14 +47,14 @@ case class Player(name: String,
           else (remaining - treasure.value, treasure +: cards)
         }
 
-        if (remainingExtraCoins.get > Coins(0))
+        if (_coins.get > Coins(0))
           consumesAllCoins.discard(cardsToDiscard)
         else discard(cardsToDiscard)
       }
 
     val (p2, g2) = g.pick(_ === card).fold((this, g)) {
       case (_, gx) =>
-        val px = updated.handLens.modify(card +: _).consumesBuy
+        val px = updated._hand.modify(card +: _).consumesBuy
         Logger.info(s"$name buys ${card.name} for ${cost.value} coins")
         px -> gx.update(px)
     }
@@ -66,7 +66,7 @@ case class Player(name: String,
     hand.pick(_ === card).fold(this) {
       case (_, newHand) =>
         Logger.info(s"$name discards ${card.name} from his hand")
-        handLens.set(newHand).discardedLens.modify(card +: _)
+        _hand.set(newHand)._discarded.modify(card +: _)
     }
   }
 
@@ -78,13 +78,13 @@ case class Player(name: String,
 
   def discardHand: Player = {
     Logger.info(s"$name discards all cards from his hand")
-    handLens.set(EmptyDeck).discardedLens.modify(_ ++ hand)
+    _hand.set(EmptyDeck)._discarded.modify(_ ++ hand)
   }
 
   def draws: Player = {
     val (card, state) = drawFromDeck
     Logger.info(s"$name draws ${card.name} from his deck to his hand")
-    state.handLens.modify(card +: _)
+    state._hand.modify(card +: _)
   }
 
   def drawsN(n: Int): Player = (0 until n).foldLeft(this)((p, _) => p.draws)
@@ -112,7 +112,7 @@ case class Player(name: String,
 
       strategy.selectNextActions(actions).foldLeft((p, g)) { (state, action) =>
         val (px, gx) = state
-        if (px.remainingActions.get > 0)
+        if (px._actions.get > 0)
           px.plays(action)(gx)
         else (px, gx)
       }
@@ -124,7 +124,7 @@ case class Player(name: String,
       preferredCards.foldLeft((p, g)) { (state, card) =>
         val (px, gx) = state
 
-        if (px.remainingBuys.get > 0)
+        if (px._buys.get > 0)
           px.buys(card)(gx)
         else (px, gx)
       }
@@ -143,7 +143,7 @@ case class Player(name: String,
     Logger.info(s"$name completed his buy phase")
 
     // Cleanup Phase: discard hand and draw next 5 cards, clean up turn state
-    val newPlayer = g2.update(p2.discardHand.drawsN(5).turnLens.set(Turn(0, 0, Coins(0))))
+    val newPlayer = g2.update(p2.discardHand.drawsN(5)._turn.set(Turn(0, 0, Coins(0))))
     Logger.info(s"$name completed his turn")
     newPlayer
   }
@@ -154,10 +154,10 @@ case class Player(name: String,
 
     if (shouldDiscard(card)) {
       Logger.info(s"$name discards ${card.name} as requested by the attacker")
-      state.discardedLens.modify(card +: _)
+      state._discarded.modify(card +: _)
     } else {
       Logger.info(s"$name puts ${card.name} back on the top of his deck as requested by the attacker")
-      state.deckLens.modify(card +: _)
+      state._deck.modify(card +: _)
     }
   }
 
@@ -188,7 +188,7 @@ case class Player(name: String,
   val allCards: Deck = hand ++ discarded ++ deck
 
   val allCoins: Coins =
-    remainingExtraCoins.get + hand.foldLeft(Coins(0)) {
+    _coins.get + hand.foldLeft(Coins(0)) {
       (acc, card) => acc + (card match {
         case t: Treasure => t.value
         case _ => Coins(0)
@@ -202,15 +202,15 @@ case class Player(name: String,
   private def drawFromDeck: (Card, Player) =
     deck.draw match {
       case Some((card, newDeck)) =>
-        (card, deckLens.set(newDeck))
+        (card, _deck.set(newDeck))
       case None =>
         Logger.debug(s"$name is out of cards and shuffles his discarded pile")
         val (card, newDeck) = discarded.shuffle.draw.get
-        (card, discardedLens.set(EmptyDeck).deckLens.set(newDeck))
+        (card, _discarded.set(EmptyDeck)._deck.set(newDeck))
     }
 
   private def validateAction(a: Action) = {
-    if (remainingActions.get > 0) {
+    if (_actions.get > 0) {
       Logger.debug(s"$name can play ${a.name}")
       hand.find(_ === a)
     } else {
@@ -232,14 +232,14 @@ object Player {
 
   val Logger = LoggerFactory.getLogger(getClass)
 
-  val _hand = mkLens[Player, Deck]("hand")
-  val _discarded = mkLens[Player, Deck]("discarded")
-  val _deck = mkLens[Player, Deck]("deck")
+  val handLens = mkLens[Player, Deck]("hand")
+  val discardedLens = mkLens[Player, Deck]("discarded")
+  val deckLens = mkLens[Player, Deck]("deck")
 
-  val _turn = mkLens[Player, Turn]("turn")
-  val _actions = mkLens[Turn, Int]("actions")
-  val _buys = mkLens[Turn, Int]("buys")
-  val _coins = mkLens[Turn, Coins]("coins")
+  val turnLens = mkLens[Player, Turn]("turn")
+  val actionsLens = mkLens[Turn, Int]("actions")
+  val buysLens = mkLens[Turn, Int]("buys")
+  val coinsLens = mkLens[Turn, Coins]("coins")
 
   def apply(name: String, hand: Deck, discarded: Deck, deck: Deck) =
     new Player(name = name, hand = hand, discarded = discarded, deck = deck)
@@ -263,41 +263,41 @@ trait TurnOps {
 
   def gains(t: Turn): Player = {
     Logger.info(s"$name gains ${t.actions} action(s), ${t.buys} buy(s), and ${t.coins.value} coin(s)")
-    turnLens.modify(_ + t)
+    _turn.modify(_ + t)
   }
 
   def gainsActions(n: Int): Player = {
     Logger.info(s"$name gains $n action(s)")
-    remainingActions.modify(_ + n)
+    _actions.modify(_ + n)
   }
 
   def gainsBuys(n: Int): Player = {
     Logger.info(s"$name gains $n buy(s)")
-    remainingBuys.modify(_ + n)
+    _buys.modify(_ + n)
   }
 
   def gainsCoins(n: Coins): Player = {
     Logger.info(s"$name gains ${n.value} coin(s)")
-    remainingExtraCoins.modify(_ + n)
+    _coins.modify(_ + n)
   }
 
   def consumesAction: Player = {
     Logger.debug(s"$name consumes one of his actions")
-    remainingActions.modify(_ - 1)
+    _actions.modify(_ - 1)
   }
 
   def consumesBuy: Player = {
     Logger.debug(s"$name consumes one of his buys")
-    remainingBuys.modify(_ - 1)
+    _buys.modify(_ - 1)
   }
 
   def consumesCoins(n: Coins): Player = {
     Logger.info(s"$name consumes ${n.value} extra coin(s)")
-    remainingExtraCoins.modify(_ - n)
+    _coins.modify(_ - n)
   }
 
   def consumesAllCoins: Player = {
     Logger.info(s"$name consumes all his extra coin(s)")
-    remainingExtraCoins.set(Coins(0))
+    _coins.set(Coins(0))
   }
 }
