@@ -195,6 +195,8 @@ case class Player(name: String,
       })
     }
 
+  val allCurses: Curses = hand.onlyCurses ++ discarded.onlyCurses ++ deck.onlyCurses
+
   val allVictories: Victories = hand.onlyVictories ++ discarded.onlyVictories ++ deck.onlyVictories
 
   private def drawFromDeck: (Card, Player) =

@@ -7,7 +7,7 @@ import scalaz.Scalaz._
 
 class DominionSpec extends UnitSpec {
 
-  "Dominion" should "let players play a game" in {
+  "Dominion" should "let players play a game consisting of one round" in {
     Dominion.playGame(Vector("X", "Y"))(Some(1))
   }
 
@@ -70,7 +70,7 @@ class DominionSpec extends UnitSpec {
     }
 
     treasures.keys should contain theSameElementsAs Deck(Copper, Silver, Gold)
-    victories.keys should contain theSameElementsAs Deck(Curse, Estate, Duchy, Province)
+    victories.keys should contain theSameElementsAs Deck(Estate, Duchy, Province)
   }
 }
 

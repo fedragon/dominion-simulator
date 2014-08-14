@@ -38,6 +38,10 @@ object Deck {
       case Action(t) => t
     }
 
+    val onlyCurses: Curses = cards.collect {
+      case Curse(t) => t
+    }
+
     val onlyTreasures: Treasures = cards.collect {
       case Treasure(t) => t
     }

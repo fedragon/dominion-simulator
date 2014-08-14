@@ -1,10 +1,12 @@
 package com.github.fedragon
 
-import scalaz.{Order, Equal}
+import scalaz.{Equal, Order}
 
 package object dominion {
 
   type Actions = Vector[Action]
+
+  type Curses = Vector[Curse.type]
 
   type Deck = Vector[Card]
 

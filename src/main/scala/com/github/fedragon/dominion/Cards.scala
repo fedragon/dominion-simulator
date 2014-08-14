@@ -64,8 +64,6 @@ object TreasureCards {
 
 object VictoryCards {
 
-  case object Curse extends Victory("Curse", cost = Coins(0), value = FixedValue(-1))
-
   case object Estate extends Victory("Estate", cost = Coins(2), value = FixedValue(1))
 
   case object Duchy extends Victory("Duchy", cost = Coins(5), value = FixedValue(3))

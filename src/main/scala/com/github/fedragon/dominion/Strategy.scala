@@ -1,7 +1,7 @@
 package com.github.fedragon.dominion
 
 import TreasureCards.{Copper, Gold, Silver}
-import VictoryCards.{Curse, Duchy, Estate, Province}
+import VictoryCards.{Duchy, Estate, Province}
 
 trait TurnStrategy {
   def selectNextActions(cards: Actions): Actions

@@ -12,6 +12,18 @@ case class Coins(value: Int) extends AnyVal {
   def -(that: Coins) = Coins(value - that.value)
 }
 
+case object Curse extends Card {
+  override val name = "Curse"
+  override val cost = Coins(0)
+  val value: Int = -1
+
+  def unapply(c: Card): Option[Curse.type] = c match {
+    case cu: Curse.type => Some(cu)
+    case _ => None
+  }
+}
+
+
 sealed trait Modifiers
 
 trait Attack extends Modifiers
@@ -61,3 +73,4 @@ object Victory {
     case _ => None
   }
 }
+

@@ -3,7 +3,6 @@ package com.github.fedragon.dominion
 import ActionCards._
 import Deck._
 import TreasureCards.{Copper, Silver}
-import VictoryCards._
 
 import scalaz.Scalaz._
 
@@ -33,7 +32,7 @@ trait PlayerOps extends ThiefOps {
           victims = g3.victims(self)
         } yield {
           victims.foldLeft(g3) { (state, v) =>
-            v.hand.pick(c => c === Estate || c === Duchy || c === Province) match {
+            v.hand.pick(c => Victory.unapply(c).isDefined) match {
               case Some((c, newHand)) =>
                 Logger.info(s"${self.name} reveals ${c.name} and puts it on top of his deck")
                 state.update(v.deckLens.modify(c +: _))

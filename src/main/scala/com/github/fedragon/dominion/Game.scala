@@ -1,7 +1,7 @@
 package com.github.fedragon.dominion
 
 import ActionCards.Moat
-import VictoryCards.{Curse, Province}
+import VictoryCards.Province
 import org.slf4j.LoggerFactory
 
 import scalaz.Scalaz._
@@ -21,7 +21,8 @@ case class Game(players: Map[String, Player], supplyPiles: Map[Card, Int], trash
       case (name, player) =>
         val nOfCards = player.allCards.size
         val points = player.allVictories.map(_.value(nOfCards)).sum
-        player -> points
+        val cursesPoints = player.allCurses.map(_.value).sum
+        player -> (points - cursesPoints)
     }.toSeq.sortWith(_._2 > _._2)
   }
 
