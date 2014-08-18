@@ -181,9 +181,10 @@ trait PlayerOps extends ThiefOps {
         val g2 = g.update(self.drawsN(2))
 
         g2.victims(self).foldLeft(g2) { (gn, pn) =>
-          if (gn.curses > 0)
-            gn.drawCurse.update(pn._deck.modify(Curse +: _))
-          else gn
+          gn.pick(_ === Curse).map {
+            case (_, newGame) =>
+              newGame.update(pn._deck.modify(Curse +: _))
+          }.getOrElse(gn)
         }
       case Woodcutter =>
         // Gain +1 buy, +2 coins

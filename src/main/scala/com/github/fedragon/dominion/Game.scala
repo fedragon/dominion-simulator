@@ -10,8 +10,6 @@ case class Game(players: Map[String, Player], supplyPiles: Map[Card, Int], trash
 
   val Logger = LoggerFactory.getLogger(getClass)
 
-  lazy val curses: Int = supplyPiles(Curse)
-
   val availableCards: Deck = supplyPiles.collect {
     case (card, count) if card =/= Curse && count > 0 => card
   }.toVector
@@ -25,8 +23,6 @@ case class Game(players: Map[String, Player], supplyPiles: Map[Card, Int], trash
         player -> (points - cursesPoints)
     }.toSeq.sortWith(_._2 > _._2)
   }
-
-  def drawCurse: Game = copy(supplyPiles = supplyPiles.updated(Curse, supplyPiles(Curse) - 1))
 
   val ended: Boolean =
     supplyPiles.get(Province).isEmpty || supplyPiles.count {
