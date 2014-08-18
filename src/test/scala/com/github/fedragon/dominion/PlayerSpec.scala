@@ -79,7 +79,7 @@ class PlayerSpec extends UnitSpec {
   it should "be able to discard one card from his hand" in {
     val subject = new Player("X", hand = Deck(Copper), deck = EmptyDeck)
 
-    val pStateOne = subject.discard(Copper)
+    val pStateOne = subject.discards(Copper)
 
     pStateOne.hand shouldBe 'empty
     pStateOne.discarded.loneElement shouldBe Copper
@@ -88,7 +88,7 @@ class PlayerSpec extends UnitSpec {
   it should "be able to discard N cards from his hand" in {
     val subject = new Player("X", hand = Deck(Copper, Silver), deck = EmptyDeck)
 
-    val pStateOne = subject.discard(Deck(Copper, Silver))
+    val pStateOne = subject.discards(Deck(Copper, Silver))
 
     pStateOne.hand shouldBe 'empty
     pStateOne.discarded should contain theSameElementsAs Deck(Copper, Silver)
@@ -99,7 +99,7 @@ class PlayerSpec extends UnitSpec {
 
     subject.hand.loneElement shouldBe Copper
 
-    val pStateOne = subject.discardHand
+    val pStateOne = subject.discardsHand
 
     pStateOne.hand shouldBe 'empty
     pStateOne.discarded.loneElement shouldBe Copper

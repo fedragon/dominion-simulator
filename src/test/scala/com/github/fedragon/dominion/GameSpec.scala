@@ -74,7 +74,7 @@ class GameSpec extends UnitSpec {
     val p1 = Player("P1", hand = Deck(Witch), deck = EmptyDeck)
     val subject = Game(Map(p1.name -> p1), Map.empty, EmptyDeck)
 
-    val p2 = p1.discard(Witch)
+    val p2 = p1.discards(Witch)
 
     subject.update(p2).find(p2) shouldBe p2
   }

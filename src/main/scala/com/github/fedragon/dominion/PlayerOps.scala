@@ -107,7 +107,7 @@ trait PlayerOps extends ThiefOps {
         // Gain +2 coins, every other player discards cards until they have 3 cards in their hand
         val g2 = g.victims(self).foldLeft(g) { (gn, pn) =>
           val toDiscard = pn.strategy.discardForMilitia(pn.hand)
-          gn.update(toDiscard.foldLeft(pn)((player, card) => player.discard(card)))
+          gn.update(toDiscard.foldLeft(pn)((player, card) => player.discards(card)))
         }
 
         g2.update(self.gainsCoins(Coins(2)))
@@ -167,7 +167,7 @@ trait PlayerOps extends ThiefOps {
       case ThroneRoom =>
         // Choose an action in your hand and play it twice
         self.strategy.selectActionForThroneRoom(self.hand).fold(g) { a =>
-          val g2 = g.update(self.discard(a))
+          val g2 = g.update(self.discards(a))
           Logger.info(s"${self.name} decides to play twice ${a.name}")
           Seq(a, a).foldLeft(g2) { (gn, _) =>
             gn.find(self).playAction(a)(gn)
@@ -242,7 +242,7 @@ trait ThiefOps {
             case (gain :: Nil, disc :: Nil) =>
               // gain one, discard one
               oneGainableOneDiscardable(gain, disc)(victim)(game)
-            case _ => throw new IllegalStateException("How could self even happen?!")
+            case _ => throw new IllegalStateException("How could this even happen?!")
           }
         }
 

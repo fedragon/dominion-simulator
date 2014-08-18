@@ -48,8 +48,8 @@ case class Player(name: String,
         }
 
         if (_coins.get > Coins(0))
-          consumesAllCoins.discard(cardsToDiscard)
-        else discard(cardsToDiscard)
+          consumesAllCoins.discards(cardsToDiscard)
+        else discards(cardsToDiscard)
       }
 
     val (p2, g2) = g.pick(_ === card).fold((this, g)) {
@@ -62,7 +62,7 @@ case class Player(name: String,
     (p2, g2.update(p2))
   }
 
-  def discard(card: Card): Player = {
+  def discards(card: Card): Player = {
     hand.pick(_ === card).fold(this) {
       case (_, newHand) =>
         Logger.info(s"$name discards ${card.name} from his hand")
@@ -70,13 +70,13 @@ case class Player(name: String,
     }
   }
 
-  def discard(cards: Deck): Player = {
+  def discards(cards: Deck): Player = {
     cards.foldLeft(this) { (p, card) =>
-      p.discard(card)
+      p.discards(card)
     }
   }
 
-  def discardHand: Player = {
+  def discardsHand: Player = {
     Logger.info(s"$name discards all cards from his hand")
     _hand.set(EmptyDeck)._discarded.modify(_ ++ hand)
   }
@@ -94,7 +94,7 @@ case class Player(name: String,
     validateAction(a).fold((this, g)) { _ =>
       Logger.info(s"$name plays $a")
       // discard this action and update the turn, then play the action
-      withPlayer(discard(a)) { p =>
+      withPlayer(discards(a)) { p =>
         withPlayer(p.consumesAction) { p2 =>
           val game = p2.playAction(a)(g)
           (game.find(p2), game)
@@ -143,7 +143,7 @@ case class Player(name: String,
     Logger.info(s"$name completed his buy phase")
 
     // Cleanup Phase: discard hand and draw next 5 cards, clean up turn state
-    val newPlayer = g2.update(p2.discardHand.drawsN(5)._turn.set(Turn(0, 0, Coins(0))))
+    val newPlayer = g2.update(p2.discardsHand.drawsN(5)._turn.set(Turn(0, 0, Coins(0))))
     Logger.info(s"$name completed his turn")
     newPlayer
   }
