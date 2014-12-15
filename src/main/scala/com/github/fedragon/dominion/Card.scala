@@ -1,5 +1,7 @@
 package com.github.fedragon.dominion
 
+import scalaz.Scalaz._
+
 sealed trait Card {
   val name: String
   val cost: Coins
@@ -18,7 +20,7 @@ case object Curse extends Card {
   val value: Int = -1
 
   def unapply(c: Card): Option[Curse.type] = c match {
-    case cu: Curse.type => Some(cu)
+    case cu: Curse.type => cu.some
     case _ => None
   }
 }
@@ -36,7 +38,7 @@ abstract class Action(val name: String, val cost: Coins) extends Card
 
 object Action {
   def unapply(c: Card): Option[Action] = c match {
-    case a: Action => Some(a)
+    case a: Action => a.some
     case _ => None
   }
 }
@@ -45,7 +47,7 @@ abstract class Treasure(val name: String, val cost: Coins, val value: Coins) ext
 
 object Treasure {
   def unapply(c: Card): Option[Treasure] = c match {
-    case t: Treasure => Some(t)
+    case t: Treasure => t.some
     case _ => None
   }
 }
@@ -69,7 +71,7 @@ abstract class Victory(val name: String, val cost: Coins, val value: CardValue) 
 
 object Victory {
   def unapply(c: Card): Option[Victory] = c match {
-    case v: Victory => Some(v)
+    case v: Victory => v.some
     case _ => None
   }
 }

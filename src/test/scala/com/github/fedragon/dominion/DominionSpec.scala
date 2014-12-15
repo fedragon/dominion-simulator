@@ -8,7 +8,7 @@ import scalaz.Scalaz._
 class DominionSpec extends UnitSpec {
 
   "Dominion" should "let players play a game consisting of one round" in {
-    Dominion.playGame(Vector("X", "Y"))(Some(1))
+    Dominion.playGame(Vector("X", "Y"))(1.some)
   }
 
   it should "create a player with a starting deck" in {

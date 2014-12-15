@@ -4,8 +4,8 @@ import ActionCards._
 import Deck._
 import TreasureCards._
 import VictoryCards._
-import org.slf4j.LoggerFactory
 
+import org.slf4j.LoggerFactory
 import util.Random
 
 object Dominion {

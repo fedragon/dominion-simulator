@@ -55,17 +55,17 @@ trait WorkshopStrategy {
 }
 
 trait Strategy extends TurnStrategy
-with CellarStrategy
-with ChancellorStrategy
-with ChapelStrategy
-with FeastStrategy
-with MilitiaStrategy
-with MineStrategy
-with RemodelStrategy
-with SpyStrategy
-with ThiefStrategy
-with ThroneRoomStrategy
-with WorkshopStrategy
+  with CellarStrategy
+  with ChancellorStrategy
+  with ChapelStrategy
+  with FeastStrategy
+  with MilitiaStrategy
+  with MineStrategy
+  with RemodelStrategy
+  with SpyStrategy
+  with ThiefStrategy
+  with ThroneRoomStrategy
+  with WorkshopStrategy
 
 class DefaultStrategy extends Strategy {
 

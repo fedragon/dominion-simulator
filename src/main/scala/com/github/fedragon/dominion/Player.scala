@@ -1,8 +1,10 @@
 package com.github.fedragon.dominion
 
 import Deck._
-import org.slf4j.LoggerFactory
+import Player._
 
+import monocle.syntax._
+import org.slf4j.LoggerFactory
 import scalaz.Scalaz._
 
 case class Player(name: String,
@@ -11,9 +13,6 @@ case class Player(name: String,
                   deck: Deck,
                   turn: Turn = Turn(actions = 1, buys = 1, coins = Coins(0)),
                   strategy: Strategy = new DefaultStrategy) extends PlayerOps with TurnOps {
-
-  import Player._
-  import monocle.syntax._
 
   val _hand = this |-> handLens
   val _deck = this |-> deckLens

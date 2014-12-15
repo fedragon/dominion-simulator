@@ -1,6 +1,7 @@
 package com.github.fedragon.dominion
 
 import scala.util.Random
+import scalaz.Scalaz._
 
 object Deck {
   val EmptyDeck = Vector.empty[Card]
@@ -19,12 +20,12 @@ object Deck {
       val index = cards.indexWhere(f)
 
       if (cards.isDefinedAt(index))
-        Some(cards(index) -> cards.patch(index, Vector.empty[Card], 1))
+        (cards(index) -> cards.patch(index, EmptyDeck, 1)).some
       else None
     }
 
     def pickN(n: Int)(f: Card => Boolean): Option[(Deck, Deck)] = {
-      (0 until n).foldLeft(Option((EmptyDeck, cards))) { (state, _) =>
+      (0 until n).foldLeft((EmptyDeck, cards).some) { (state, _) =>
         state.flatMap {
           case (picked, remaining) =>
             remaining.pick(f).collect {
@@ -50,6 +51,5 @@ object Deck {
       case Victory(v) => v
     }
   }
-
 }
 

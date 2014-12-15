@@ -2,8 +2,8 @@ package com.github.fedragon.dominion
 
 import ActionCards.Moat
 import VictoryCards.Province
-import org.slf4j.LoggerFactory
 
+import org.slf4j.LoggerFactory
 import scalaz.Scalaz._
 
 case class Game(players: Map[String, Player], supplyPiles: Map[Card, Int], trashed: Deck, round: Int = 0) {
